@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kamus_kamek/config/custom_color.dart';
 import 'package:kamus_kamek/ui/screens/onboarding_screen.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
+import 'package:kamus_kamek/utils/size_config.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({ Key? key }) : super(key: key);
@@ -20,6 +21,7 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
+    SizeConfig().init(context);
     return Scaffold(
       body: Container(
         decoration: BoxDecoration(
