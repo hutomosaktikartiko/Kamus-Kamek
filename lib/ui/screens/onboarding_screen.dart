@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:kamus_kamek/config/custom_color.dart';
 import 'package:kamus_kamek/config/text_style.dart';
+import 'package:kamus_kamek/ui/screens/home_screen.dart';
 import 'package:kamus_kamek/ui/widgets/custom_button.dart';
+import 'package:kamus_kamek/utils/navigator.dart';
+import 'package:kamus_kamek/utils/preferences.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
 
 class OnBoardingScreen extends StatelessWidget {
@@ -45,11 +48,16 @@ class OnBoardingScreen extends StatelessWidget {
               height: 30,
             ),
             Padding(
-              padding:  EdgeInsets.symmetric(horizontal: SizeConfig.defaultMargin),
+              padding:
+                  EdgeInsets.symmetric(horizontal: SizeConfig.defaultMargin),
               child: CustomButton(
                 linearGradient: linearGradient(),
                 borderRadius: 100,
                 label: "Start",
+                onTap: () async {
+                  Preferences.instance().then((pref) => pref.isNewUser = false);
+                  replaceScreen(context, HomeScreen());
+                },
               ),
             )
           ],
