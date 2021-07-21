@@ -28,6 +28,7 @@ flutter:
   assets:
     - assets/images/
     - assets/font/
+    - assets/examples/
 
   fonts:
     - family: Raleway

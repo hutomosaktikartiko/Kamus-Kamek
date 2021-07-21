@@ -5,3 +5,4 @@ TextStyle blackFontStyle = TextStyle(color: Colors.black);
 TextStyle whiteFontStyle = TextStyle(color: Colors.white);
 
 TextStyle mainColor2FontStyle = TextStyle(color: mainColor2);
+TextStyle greyFontStyle = TextStyle(color: grey);
