@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:kamus_kamek/config/custom_color.dart';
 import 'package:kamus_kamek/config/text_style.dart';
+import 'package:kamus_kamek/ui/screens/camera_screen.dart';
+import 'package:kamus_kamek/utils/navigator.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -16,14 +18,19 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Color(0xFFE5E5E5),
       body: buildBody(),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => startScreen(context, CameraScreen()),
+        child: Icon(Icons.camera),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
     );
   }
 
   SafeArea buildBody() {
     return SafeArea(
       child: ListView(
-        padding: EdgeInsets.symmetric(vertical: 10),
         children: [
+          SizedBox(height: 10),
           Padding(
             padding: EdgeInsets.symmetric(
               horizontal: SizeConfig.defaultMargin,
@@ -51,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> {
             height: 13,
           ),
           Container(
-            height: SizeConfig.screenHeight * 0.83,
+            height: SizeConfig.screenHeight * 0.859,
             padding:
                 EdgeInsets.symmetric(horizontal: SizeConfig.defaultMargin),
             decoration: BoxDecoration(
