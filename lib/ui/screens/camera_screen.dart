@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:kamus_kamek/config/text_style.dart';
+import 'package:kamus_kamek/ui/screens/result_screen.dart';
 import 'package:kamus_kamek/ui/widgets/loading_indicator.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
@@ -69,7 +70,7 @@ class _CameraScreenState extends State<CameraScreen> {
             ),
             Spacer(),
             FloatingActionButton(
-              onPressed: () {},
+              onPressed: () => startScreen(context, ResultScreen()),
               elevation: 0,
               backgroundColor: Colors.white,
               child: Container(
