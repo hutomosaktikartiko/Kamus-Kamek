@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:kamus_kamek/config/custom_color.dart';
 import 'package:kamus_kamek/config/text_style.dart';
 import 'package:kamus_kamek/ui/screens/camera_screen.dart';
+import 'package:kamus_kamek/ui/screens/setting_screen.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
 
@@ -50,7 +51,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     buildSelectedCountryCard(),
                   ],
                 ),
-                GestureDetector(onTap: () {}, child: Icon(Icons.settings))
+                GestureDetector(
+                    onTap: () => startScreen(context, SettingScreen()),
+                    child: Icon(Icons.settings))
               ],
             ),
           ),
@@ -59,12 +62,10 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           Container(
             height: SizeConfig.screenHeight * 0.859,
-            padding:
-                EdgeInsets.symmetric(horizontal: SizeConfig.defaultMargin),
+            padding: EdgeInsets.symmetric(horizontal: SizeConfig.defaultMargin),
             decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius:
-                    BorderRadius.only(topLeft: Radius.circular(40))),
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(40))),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
