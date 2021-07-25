@@ -1,10 +1,14 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:kamus_kamek/config/custom_color.dart';
 import 'package:kamus_kamek/config/text_style.dart';
-import 'package:kamus_kamek/ui/screens/camera_screen.dart';
+import 'package:kamus_kamek/ui/screens/result_screen.dart';
 import 'package:kamus_kamek/ui/screens/setting_screen.dart';
+import 'package:kamus_kamek/ui/widgets/custom_toast.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
+import 'package:kamus_kamek/utils/utils.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -14,13 +18,16 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  GlobalKey _scaffold = GlobalKey();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Color(0xFFE5E5E5),
+      key: _scaffold,
       body: buildBody(),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => startScreen(context, CameraScreen()),
+        onPressed: () => showImageActionSheet(),
         child: Icon(Icons.camera),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
@@ -158,5 +165,44 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+  }
+
+  void showImageActionSheet() {
+    showModalBottomSheet(
+        context: _scaffold.currentContext!,
+        builder: (context) => Wrap(
+              children: [
+                ListTile(
+                  leading: Icon(Icons.camera_alt),
+                  title: Text("Kamera"),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    try {
+                      Utils.pickeMedia(isGallery: false).then((value) =>
+                          startScreen(_scaffold.currentContext!,
+                              ResultScreen(File(value.path))));
+                    } catch (e) {
+                      print("ERROR $e");
+                      customToast(e.toString());
+                    }
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.perm_media),
+                  title: Text("Galeri"),
+                  onTap: () async {
+                    Navigator.pop(context);
+                    try {
+                      Utils.pickeMedia(isGallery: true).then((value) =>
+                          startScreen(_scaffold.currentContext!,
+                              ResultScreen(File(value.path))));
+                    } catch (e) {
+                      print("ERROR $e");
+                      customToast(e.toString());
+                    }
+                  },
+                ),
+              ],
+            ));
   }
 }

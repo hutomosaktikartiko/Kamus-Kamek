@@ -1,4 +1,4 @@
-package com.example.kamus_kamek
+package com.hutomosaktikartiko.kamuskamek
 
 import io.flutter.embedding.android.FlutterActivity
 

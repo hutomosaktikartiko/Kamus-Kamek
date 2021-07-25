@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "233915473257",
+    "project_id": "kamus-kamek",
+    "storage_bucket": "kamus-kamek.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:233915473257:android:321af99217d5b7b6ec31f8",
+        "android_client_info": {
+          "package_name": "com.example.kamus_kamek"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "233915473257-088qh2mk01r76icvkodlm8ubmvj1i3qg.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.kamus_kamek",
+            "certificate_hash": "9d0415552121858a5372fa6ab88941aa30d8733d"
+          }
+        },
+        {
+          "client_id": "233915473257-id58jihiqqqc6533dnda46r8cm954nnj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSkCsZnM6p34ZCjshZG5U8SJkGOtuZAUI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "233915473257-id58jihiqqqc6533dnda46r8cm954nnj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

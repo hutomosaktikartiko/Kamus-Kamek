@@ -9,6 +9,8 @@ class CustomForm extends StatelessWidget {
       this.readOnly = false,
       this.hintText,
       this.labelText,
+      this.maxLines,
+      this.minLines,
       this.isShowBorder = false})
       : super(key: key);
 
@@ -17,6 +19,7 @@ class CustomForm extends StatelessWidget {
   final String? hintText, labelText;
   final bool isShowBorder;
   final bool readOnly;
+  final int? maxLines, minLines;
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +39,8 @@ class CustomForm extends StatelessWidget {
         TextFormField(
           controller: controller,
           readOnly: readOnly,
+          maxLines: null,
+          minLines: null,
           style: blackFontStyle.copyWith(
               fontSize: 30, fontWeight: FontWeight.w600),
           decoration: InputDecoration(
@@ -45,7 +50,7 @@ class CustomForm extends StatelessWidget {
                 color: mainColor2.withOpacity(0.21),
                 fontSize: 30,
                 fontWeight: FontWeight.w600),
-             ),
+          ),
         ),
       ],
     );
