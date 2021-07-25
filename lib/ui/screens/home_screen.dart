@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:kamus_kamek/config/custom_color.dart';
 import 'package:kamus_kamek/config/text_style.dart';
+import 'package:kamus_kamek/services/image_services.dart';
 import 'package:kamus_kamek/ui/screens/result_screen.dart';
 import 'package:kamus_kamek/ui/screens/setting_screen.dart';
 import 'package:kamus_kamek/ui/widgets/custom_toast.dart';
@@ -178,7 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () async {
                     Navigator.pop(context);
                     try {
-                      Utils.pickeMedia(isGallery: false).then((value) =>
+                      ImageServices.selectImage(isGallery: false).then((value) =>
                           startScreen(_scaffold.currentContext!,
                               ResultScreen(File(value.path))));
                     } catch (e) {
@@ -193,7 +194,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () async {
                     Navigator.pop(context);
                     try {
-                      Utils.pickeMedia(isGallery: true).then((value) =>
+                      ImageServices.selectImage(isGallery: true).then((value) =>
                           startScreen(_scaffold.currentContext!,
                               ResultScreen(File(value.path))));
                     } catch (e) {
