@@ -26,7 +26,7 @@ class ImageServices {
       );
 
   static IOSUiSettings ioUiSettings() =>
-      IOSUiSettings(aspectRatioLockEnabled: false);
+      IOSUiSettings(aspectRatioLockEnabled: true, );
 
   static AndroidUiSettings androidUiSettings() => AndroidUiSettings(
         toolbarTitle: "Crop Image",

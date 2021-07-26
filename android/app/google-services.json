@@ -41,6 +41,43 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:233915473257:android:47f1035b7b466d02ec31f8",
+        "android_client_info": {
+          "package_name": "com.hutomosaktikartiko.kamuskamek"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "233915473257-1fg36hcq1jfpkn95lfbe0ndrjkinpn63.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.hutomosaktikartiko.kamuskamek",
+            "certificate_hash": "9d0415552121858a5372fa6ab88941aa30d8733d"
+          }
+        },
+        {
+          "client_id": "233915473257-id58jihiqqqc6533dnda46r8cm954nnj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCSkCsZnM6p34ZCjshZG5U8SJkGOtuZAUI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "233915473257-id58jihiqqqc6533dnda46r8cm954nnj.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"

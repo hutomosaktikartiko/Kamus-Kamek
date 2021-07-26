@@ -3,7 +3,11 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:kamus_kamek/config/text_style.dart';
+import 'package:kamus_kamek/models/api_return_value.dart';
+import 'package:kamus_kamek/models/translation_model.dart';
+import 'package:kamus_kamek/services/translation_services.dart';
 import 'package:kamus_kamek/ui/widgets/custom_form.dart';
+import 'package:kamus_kamek/ui/widgets/custom_toast.dart';
 import 'package:kamus_kamek/ui/widgets/loading_indicator.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
@@ -21,7 +25,9 @@ class ResultScreen extends StatefulWidget {
 
 class _ResultScreenState extends State<ResultScreen> {
   late TextEditingController textController;
+  late TextEditingController translatedTextController;
   bool isLoading = true;
+  String detectLanguage = "en";
 
   @override
   void initState() {
@@ -34,7 +40,7 @@ class _ResultScreenState extends State<ResultScreen> {
   Future recognisedText() async {
     final RecognisedText recognisedText =
         await textDetector.processImage(InputImage.fromFile(widget.imageUrl));
-    if (recognisedText.blocks.length > 0 ) {
+    if (recognisedText.blocks.length > 0) {
       String text = "";
 
       for (TextBlock block in recognisedText.blocks) {
@@ -45,7 +51,20 @@ class _ResultScreenState extends State<ResultScreen> {
         }
       }
 
-      textController = TextEditingController(text: "$text");
+      print("TRANSLATING....");
+
+      ApiReturnValue<TranslationModel> result =
+          await TranslationServices.translateText(text: text, target: "id");
+
+      if (result.value != null) {
+        textController = TextEditingController(text: text);
+        translatedTextController = TextEditingController(text: "${result.value?.translatedText}");
+        detectLanguage = result.value!.dectectedSourceLanguage ?? "en";
+      } else {
+        textController = TextEditingController();
+        translatedTextController = TextEditingController();
+        customToast(result.message ?? "Gagal menerjemahkan, silahkan coba kembali!");
+      }
     }
 
     setState(() {
@@ -74,13 +93,16 @@ class _ResultScreenState extends State<ResultScreen> {
                     SizedBox(
                       height: 20,
                     ),
-                    CustomForm(textController, 
-                      maxLines: 10,),
+                    CustomForm(
+                      textController,
+                      maxLines: 10,
+                      labelText: detectLanguage,
+                    ),
                     SizedBox(
                       height: 50,
                     ),
                     CustomForm(
-                      textController,
+                      translatedTextController,
                       readOnly: true,
                       labelStyle: greyFontStyle.copyWith(
                           fontSize: 14, fontWeight: FontWeight.w500),
