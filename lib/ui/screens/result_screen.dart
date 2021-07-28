@@ -51,8 +51,6 @@ class _ResultScreenState extends State<ResultScreen> {
         }
       }
 
-      print("TRANSLATING....");
-
       ApiReturnValue<TranslationModel> result =
           await TranslationServices.translateText(text: text, target: "id");
 
