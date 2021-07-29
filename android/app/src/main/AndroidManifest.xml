@@ -1,8 +1,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.hutomosaktikartiko.kamuskamek"> 
       <application
-        android:label="kamus_kamek"
-        android:icon="@mipmap/ic_launcher">
+        android:label="Kamus Kamek"
+        android:icon="@mipmap/launcher_icon">
         <activity
             android:name=".MainActivity"
             android:launchMode="singleTop"
