@@ -9,11 +9,12 @@ part 'country_state.dart';
 class CountryCubit extends Cubit<CountryState> {
   CountryCubit() : super(CountryInitial());
 
-  Future<void> getCountry() async {
+  void getCountry() {
     ApiReturnValue<List<CountryModel>> result =
-        await CountryServices.getCountry();
+         CountryServices.getCountry();
 
     if (result.value != null) {
+      result.value!.sort((a, b) => a.country!.compareTo(b.country!));
       emit(CountryLoaded(result.value!));
     } else {
       emit(CountryLoadingFailed(result.message!));

@@ -12,7 +12,6 @@ import 'package:kamus_kamek/ui/widgets/loading_indicator.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
-import 'package:camera/camera.dart';
 
 class ResultScreen extends StatefulWidget {
   const ResultScreen(this.imageUrl, {Key? key}) : super(key: key);
@@ -56,12 +55,14 @@ class _ResultScreenState extends State<ResultScreen> {
 
       if (result.value != null) {
         textController = TextEditingController(text: text);
-        translatedTextController = TextEditingController(text: "${result.value?.translatedText}");
+        translatedTextController =
+            TextEditingController(text: "${result.value?.translatedText}");
         detectLanguage = result.value!.dectectedSourceLanguage ?? "en";
       } else {
         textController = TextEditingController();
         translatedTextController = TextEditingController();
-        customToast(result.message ?? "Gagal menerjemahkan, silahkan coba kembali!");
+        customToast(
+            result.message ?? "Gagal menerjemahkan, silahkan coba kembali!");
       }
     }
 
@@ -106,6 +107,8 @@ class _ResultScreenState extends State<ResultScreen> {
                           fontSize: 14, fontWeight: FontWeight.w500),
                       labelText: "Indonesia",
                       maxLines: 10,
+                      hintStyle: greyFontStyle.copyWith(
+                          fontSize: 30, fontWeight: FontWeight.w600),
                     )
                   ],
                 ),

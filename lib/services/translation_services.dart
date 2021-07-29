@@ -6,13 +6,15 @@ import 'package:kamus_kamek/utils/utils.dart';
 class TranslationServices {
   static Dio dio = Dio();
 
-  static Future<ApiReturnValue<TranslationModel>> translateText({required String text, required String target}) async {
+  static Future<ApiReturnValue<TranslationModel>> translateText(
+      {required String text, required String target, String? source}) async {
     try {
-      FormData formData = FormData.fromMap({
-        "key": googleApiKey,
-        "q": text,
-        "target": "id"
-      });
+      FormData formData = FormData.fromMap(
+          {"key": googleApiKey, "q": text, "target": "$target"});
+
+      if (source != null) {
+        formData.fields.add(MapEntry("source", "$source"));
+      }
 
       var response = await dio.post(baseUrlGoogleApi, data: formData);
 
@@ -22,8 +24,8 @@ class TranslationServices {
 
       return ApiReturnValue(value: TranslationModel.fromJson(result));
     } on DioError catch (e) {
-      print("{ ERROR TRANLATED TEXT --> $e}");
-      return ApiReturnValue(message: e.response?.data['error']['messages']);
+      print("{ ERROR TRANLATED TEXT --> ${e.response?.data}}");
+      return ApiReturnValue(message: e.response?.data['error']['message']);
     }
   }
 }

@@ -11,15 +11,18 @@ class CustomForm extends StatelessWidget {
       this.labelText,
       this.maxLines,
       this.minLines,
+      this.onChanged,
+      this.hintStyle,
       this.isShowBorder = false})
       : super(key: key);
 
   final TextEditingController controller;
-  final TextStyle? labelStyle;
+  final TextStyle? labelStyle, hintStyle;
   final String? hintText, labelText;
   final bool isShowBorder;
   final bool readOnly;
   final int? maxLines, minLines;
+  final Function? onChanged;
 
   @override
   Widget build(BuildContext context) {
@@ -41,12 +44,17 @@ class CustomForm extends StatelessWidget {
           readOnly: readOnly,
           maxLines: null,
           minLines: null,
+          onChanged: (text) {
+            if (onChanged != null) {
+              onChanged!();
+            }
+          },
           style: blackFontStyle.copyWith(
               fontSize: 30, fontWeight: FontWeight.w600),
           decoration: InputDecoration(
             contentPadding: EdgeInsets.zero,
             hintText: hintText ?? "Enter text",
-            hintStyle: mainColor2FontStyle.copyWith(
+            hintStyle: hintStyle ?? mainColor2FontStyle.copyWith(
                 color: mainColor2.withOpacity(0.21),
                 fontSize: 30,
                 fontWeight: FontWeight.w600),

@@ -6,26 +6,16 @@ import 'package:kamus_kamek/utils/utils.dart';
 class CountryServices {
   static Dio dio = Dio();
 
-  static Future<ApiReturnValue<List<CountryModel>>> getCountry() async {
+  static ApiReturnValue<List<CountryModel>> getCountry() {
     try {
-      String url = baseUrlCountry;
-
-      var response = await dio.get(url, queryParameters: {
-        "limit": 1000
-      });
-
-      print("{ SUCCESS GET COUNTRY $response}");
-
-      Map<String, dynamic> results = response.data['data'];
-
       return ApiReturnValue(
-          value: results.keys
-              .map((e) => CountryModel(
-                  code: e.toLowerCase(),
-                  country: results[e]['country'],
-                  region: results[e]['region'],
-                  flagUrl: baseUrlFlag(e.toLowerCase())))
-              .toList());
+        value: listCountries.map((e) => CountryModel(
+          code: e.code,
+          country: e.country,
+          hintText: e.hintText,
+          flagUrl: baseUrlFlag(e.code!)
+        )).toList()
+      );
     } on DioError catch (e) {
       print("{ ERROR GET COUNTRY $e}");
       return ApiReturnValue(

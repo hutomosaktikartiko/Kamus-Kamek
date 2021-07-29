@@ -1,15 +1,21 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:kamus_kamek/config/custom_color.dart';
 import 'package:kamus_kamek/config/text_style.dart';
+import 'package:kamus_kamek/models/api_return_value.dart';
+import 'package:kamus_kamek/models/country_model.dart';
+import 'package:kamus_kamek/models/translation_model.dart';
 import 'package:kamus_kamek/services/image_services.dart';
 import 'package:kamus_kamek/ui/screens/result_screen.dart';
 import 'package:kamus_kamek/ui/screens/setting_screen.dart';
+import 'package:kamus_kamek/ui/widgets/custom_form.dart';
 import 'package:kamus_kamek/ui/widgets/custom_toast.dart';
+import 'package:kamus_kamek/ui/widgets/loading_indicator.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
-import 'package:kamus_kamek/utils/utils.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kamus_kamek/cubit/cubit.dart';
+import 'package:kamus_kamek/services/translation_services.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -20,6 +26,36 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   GlobalKey _scaffold = GlobalKey();
+
+  late CountryModel country1;
+  late CountryModel country2;
+
+  TextEditingController textEditingController1 = TextEditingController();
+  TextEditingController textEditingController2 = TextEditingController();
+
+  @override
+  void initState() {
+    country1 = listCountries
+        .firstWhere((element) => element.country == "English (US)");
+    country2 =
+        listCountries.firstWhere((element) => element.country == "Indonesian");
+    super.initState();
+  }
+
+  Future translateText(String text) async {
+    ApiReturnValue<TranslationModel> result =
+        await TranslationServices.translateText(
+            text: text, target: country2.code!, source: country1.code);
+
+    if (result.value != null) {
+      setState(() {
+        textEditingController2 =
+            TextEditingController(text: result.value?.translatedText);
+      });
+    } else {
+      customToast(result.message!);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Icon(Icons.camera),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      resizeToAvoidBottomInset: false,
     );
   }
 
@@ -49,14 +86,28 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 Row(
                   children: [
-                    buildSelectedCountryCard(),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                          padding: EdgeInsets.symmetric(horizontal: 10)),
+                      onPressed: () {
+                        buildBottomSheet(true);
+                      },
+                      child: buildSelectedCountryCard(country1),
+                    ),
                     GestureDetector(
                         onTap: () {},
                         child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 15),
+                          padding: EdgeInsets.symmetric(horizontal: 10),
                           child: Icon(Icons.swap_horiz),
                         )),
-                    buildSelectedCountryCard(),
+                    TextButton(
+                      style: TextButton.styleFrom(
+                          padding: EdgeInsets.symmetric(horizontal: 10)),
+                      onPressed: () {
+                        buildBottomSheet(false);
+                      },
+                      child: buildSelectedCountryCard(country2),
+                    ),
                   ],
                 ),
                 GestureDetector(
@@ -80,27 +131,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 SizedBox(
                   height: 18,
                 ),
-                Text(
-                  "English",
-                  style: mainColor2FontStyle.copyWith(
-                      fontSize: 14, fontWeight: FontWeight.w500),
-                ),
-                SizedBox(
-                  height: 19,
-                ),
-                TextFormField(
-                  style: blackFontStyle.copyWith(
-                      fontSize: 30, fontWeight: FontWeight.w600),
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.zero,
-                    hintText: "Enter text",
-                    hintStyle: mainColor2FontStyle.copyWith(
-                        color: mainColor2.withOpacity(0.21),
-                        fontSize: 30,
-                        fontWeight: FontWeight.w600),
-                    enabledBorder:
-                        OutlineInputBorder(borderSide: BorderSide.none),
-                  ),
+                CustomForm(
+                  textEditingController1,
+                  maxLines: 10,
+                  hintText: country1.hintText,
+                  labelText: country1.country,
+                  onChanged: () {
+                    translateText(textEditingController1.text);
+                  },
                 ),
                 SizedBox(
                   height: 90,
@@ -109,28 +147,17 @@ class _HomeScreenState extends State<HomeScreen> {
                 SizedBox(
                   height: 18,
                 ),
-                Text(
-                  "Indonesia",
-                  style: greyFontStyle.copyWith(
+                CustomForm(
+                  textEditingController2,
+                  readOnly: true,
+                  hintText: country2.hintText,
+                  labelStyle: greyFontStyle.copyWith(
                       fontSize: 14, fontWeight: FontWeight.w500),
-                ),
-                SizedBox(
-                  height: 19,
-                ),
-                TextFormField(
-                  style: blackFontStyle.copyWith(
+                  labelText: country2.country,
+                  maxLines: 10,
+                  hintStyle: greyFontStyle.copyWith(
                       fontSize: 30, fontWeight: FontWeight.w600),
-                  decoration: InputDecoration(
-                    hintText: "Masukkan teks",
-                    contentPadding: EdgeInsets.zero,
-                    hintStyle: greyFontStyle.copyWith(
-                        color: grey.withOpacity(0.21),
-                        fontSize: 30,
-                        fontWeight: FontWeight.w600),
-                    enabledBorder:
-                        OutlineInputBorder(borderSide: BorderSide.none),
-                  ),
-                ),
+                )
               ],
             ),
           )
@@ -139,29 +166,106 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  TextButton buildSelectedCountryCard() {
-    return TextButton(
-      style:
-          TextButton.styleFrom(padding: EdgeInsets.symmetric(horizontal: 10)),
-      onPressed: () {},
+  void buildBottomSheet(bool isCountry1) {
+    showModalBottomSheet(
+        context: context,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(10))),
+        isScrollControlled: true,
+        builder: (context) {
+          return SizedBox(
+              height: SizeConfig.screenHeight * 0.9,
+              child: BlocBuilder<CountryCubit, CountryState>(
+                builder: (context, state) {
+                  if (state is CountryLoaded) {
+                    return SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: state.countrys
+                            .map((e) => InkWell(
+                                  onTap: () {
+                                    closeScreen(context);
+                                    if (isCountry1) {
+                                      country1 = e;
+                                    } else {
+                                      country2 = e;
+                                    }
+                                    translateText(textEditingController1.text);
+                                    setState(() {});
+                                  },
+                                  child: Container(
+                                      width: SizeConfig.screenWidth,
+                                      padding: EdgeInsets.symmetric(
+                                          vertical: 15,
+                                          horizontal: SizeConfig.defaultMargin),
+                                      child: Row(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            child: FadeInImage(
+                                              placeholder: AssetImage(
+                                                  "assets/images/placeholder.jpg"),
+                                              height: 26,
+                                              width: 26,
+                                              fit: BoxFit.cover,
+                                              image: NetworkImage("${e.flagUrl}"),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: 10,
+                                          ),
+                                          Expanded(
+                                            child: Text(
+                                              e.country!,
+                                              style: blackFontStyle.copyWith(
+                                                  fontSize: 15),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      )),
+                                ))
+                            .toList(),
+                      ),
+                    );
+                  } else if (state is CountryLoadingFailed) {
+                    customToast(state.message);
+                    // TODO: Error Screen
+                    return Container();
+                  } else {
+                    return loadingIndicator();
+                  }
+                },
+              ));
+        });
+  }
+
+  SizedBox buildSelectedCountryCard(CountryModel country) {
+    return SizedBox(
+      width: SizeConfig.screenWidth * 0.3,
       child: Row(
         children: [
           ClipRRect(
-            borderRadius: BorderRadius.circular(100),
-            child: Image.asset(
-              "assets/examples/flag_en.png",
+            borderRadius: BorderRadius.circular(10),
+            child: FadeInImage(
+              placeholder: AssetImage("assets/images/placeholder.jpg"),
               height: 26,
               width: 26,
               fit: BoxFit.cover,
+              image: NetworkImage("${country.flagUrl}"),
             ),
           ),
           SizedBox(
             width: 10,
           ),
-          Text(
-            "English",
-            style: blackFontStyle.copyWith(
-                fontSize: 14, fontWeight: FontWeight.w500),
+          Expanded(
+            child: Text(
+              country.country ?? "",
+              style: blackFontStyle.copyWith(
+                  fontSize: 14, fontWeight: FontWeight.w500),
+              overflow: TextOverflow.ellipsis,
+            ),
           )
         ],
       ),
@@ -179,8 +283,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () async {
                     Navigator.pop(context);
                     try {
-                      ImageServices.selectImage(isGallery: false).then((value) =>
-                          startScreen(_scaffold.currentContext!,
+                      ImageServices.selectImage(isGallery: false).then(
+                          (value) => startScreen(_scaffold.currentContext!,
                               ResultScreen(File(value.path))));
                     } catch (e) {
                       print("ERROR $e");
