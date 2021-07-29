@@ -19,7 +19,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  camera: ^0.8.1+5
   change_app_package_name: ^1.0.0
   dio: ^4.0.0
   equatable: ^2.0.3
@@ -43,7 +42,6 @@ flutter:
   assets:
     - assets/images/
     - assets/font/
-    - assets/examples/
 
   fonts:
     - family: Raleway

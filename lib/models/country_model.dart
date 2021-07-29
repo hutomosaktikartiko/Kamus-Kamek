@@ -4,7 +4,7 @@ class CountryModel {
   CountryModel({this.code, this.flagUrl, this.country, this.hintText});
 }
 
-List<CountryModel> listCountries = [
+final List<CountryModel> listCountries = [
   CountryModel(country: "Amharic", code: "am", hintText: "ጽሑፍ ያስገቡ"),
   CountryModel(country: "Arabic", code: "ar", hintText: "أدخل النص"),
   CountryModel(country: "Basque", code: "eu", hintText: "Idatzi testua"),
