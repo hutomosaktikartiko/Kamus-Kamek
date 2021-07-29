@@ -3,7 +3,9 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:kamus_kamek/config/text_style.dart';
+import 'package:kamus_kamek/cubit/cubit.dart';
 import 'package:kamus_kamek/models/api_return_value.dart';
+import 'package:kamus_kamek/models/country_model.dart';
 import 'package:kamus_kamek/models/translation_model.dart';
 import 'package:kamus_kamek/services/translation_services.dart';
 import 'package:kamus_kamek/ui/widgets/custom_form.dart';
@@ -12,6 +14,7 @@ import 'package:kamus_kamek/ui/widgets/loading_indicator.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ResultScreen extends StatefulWidget {
   const ResultScreen(this.imageUrl, {Key? key}) : super(key: key);
@@ -23,10 +26,12 @@ class ResultScreen extends StatefulWidget {
 }
 
 class _ResultScreenState extends State<ResultScreen> {
-  late TextEditingController textController;
-  late TextEditingController translatedTextController;
+  late TextEditingController textEditingController1;
+  late TextEditingController textEditingController2;
   bool isLoading = true;
-  String detectLanguage = "en";
+
+  late CountryModel country1;
+  late CountryModel country2;
 
   @override
   void initState() {
@@ -50,25 +55,52 @@ class _ResultScreenState extends State<ResultScreen> {
         }
       }
 
+      country2 = listCountries
+          .firstWhere((element) => element.country == "Indonesian");
+
       ApiReturnValue<TranslationModel> result =
-          await TranslationServices.translateText(text: text, target: "id");
+          await TranslationServices.translateText(
+              text: text, target: country2.code ?? "id");
 
       if (result.value != null) {
-        textController = TextEditingController(text: text);
-        translatedTextController =
+        textEditingController1 = TextEditingController(text: text);
+        textEditingController2 =
             TextEditingController(text: "${result.value?.translatedText}");
-        detectLanguage = result.value!.dectectedSourceLanguage ?? "en";
+        country1 = listCountries.firstWhere((element) =>
+            (element.code == result.value!.dectectedSourceLanguage));
       } else {
-        textController = TextEditingController();
-        translatedTextController = TextEditingController();
+        textEditingController1 = TextEditingController();
+        textEditingController2 = TextEditingController();
+        country1 = listCountries
+            .firstWhere((element) => element.country == "English (US)");
+        country2 = listCountries
+            .firstWhere((element) => element.country == "Indonesian");
         customToast(
             result.message ?? "Gagal menerjemahkan, silahkan coba kembali!");
       }
+    } else {
+      closeScreen(context);
+      customToast("Tidak dapat membaca teks");
     }
 
     setState(() {
       isLoading = false;
     });
+  }
+
+  Future translateText(String text) async {
+    ApiReturnValue<TranslationModel> result =
+        await TranslationServices.translateText(
+            text: text, target: country2.code!, source: country1.code);
+
+    if (result.value != null) {
+      setState(() {
+        textEditingController2 =
+            TextEditingController(text: result.value?.translatedText);
+      });
+    } else {
+      customToast(result.message!);
+    }
   }
 
   @override
@@ -93,20 +125,22 @@ class _ResultScreenState extends State<ResultScreen> {
                       height: 20,
                     ),
                     CustomForm(
-                      textController,
+                      textEditingController1,
                       maxLines: 10,
-                      labelText: detectLanguage,
+                      readOnly: true,
+                      labelText: country1.country,
                     ),
                     SizedBox(
                       height: 50,
                     ),
                     CustomForm(
-                      translatedTextController,
+                      textEditingController2,
                       readOnly: true,
                       labelStyle: greyFontStyle.copyWith(
                           fontSize: 14, fontWeight: FontWeight.w500),
-                      labelText: "Indonesia",
+                      labelText: country2.country,
                       maxLines: 10,
+                      onTapLabel: () => buildBottomSheet(false),
                       hintStyle: greyFontStyle.copyWith(
                           fontSize: 30, fontWeight: FontWeight.w600),
                     )
@@ -116,60 +150,80 @@ class _ResultScreenState extends State<ResultScreen> {
             ),
     );
   }
+
+  void buildBottomSheet(bool isCountry1) {
+    showModalBottomSheet(
+        context: context,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(10))),
+        isScrollControlled: true,
+        builder: (context) {
+          return SizedBox(
+              height: SizeConfig.screenHeight * 0.9,
+              child: BlocBuilder<CountryCubit, CountryState>(
+                builder: (context, state) {
+                  if (state is CountryLoaded) {
+                    return SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: state.countrys
+                            .map((e) => InkWell(
+                                  onTap: () {
+                                    closeScreen(context);
+                                    if (isCountry1) {
+                                      country1 = e;
+                                    } else {
+                                      country2 = e;
+                                    }
+                                    translateText(textEditingController1.text);
+                                    setState(() {});
+                                  },
+                                  child: Container(
+                                      width: SizeConfig.screenWidth,
+                                      padding: EdgeInsets.symmetric(
+                                          vertical: 15,
+                                          horizontal: SizeConfig.defaultMargin),
+                                      child: Row(
+                                        children: [
+                                          ClipRRect(
+                                            borderRadius:
+                                                BorderRadius.circular(10),
+                                            child: FadeInImage(
+                                              placeholder: AssetImage(
+                                                  "assets/images/placeholder.jpg"),
+                                              height: 26,
+                                              width: 26,
+                                              fit: BoxFit.cover,
+                                              image:
+                                                  NetworkImage("${e.flagUrl}"),
+                                            ),
+                                          ),
+                                          SizedBox(
+                                            width: 10,
+                                          ),
+                                          Expanded(
+                                            child: Text(
+                                              e.country!,
+                                              style: blackFontStyle.copyWith(
+                                                  fontSize: 15),
+                                              overflow: TextOverflow.ellipsis,
+                                            ),
+                                          ),
+                                        ],
+                                      )),
+                                ))
+                            .toList(),
+                      ),
+                    );
+                  } else if (state is CountryLoadingFailed) {
+                    customToast(state.message);
+                    // TODO: Error Screen
+                    return Container();
+                  } else {
+                    return loadingIndicator();
+                  }
+                },
+              ));
+        });
+  }
 }
-
-// import 'package:flutter/material.dart';
-// import 'package:google_ml_kit/google_ml_kit.dart';
-// import 'package:kamus_kamek/ui/screens/camera_screen.dart';
-// import 'package:kamus_kamek/ui/widgets/text_detetcor_painter.dart';
-
-// class ResultScreen extends StatefulWidget {
-//   const ResultScreen({Key? key}) : super(key: key);
-
-//   @override
-//   _ResultScreenState createState() => _ResultScreenState();
-// }
-
-// class _ResultScreenState extends State<ResultScreen> {
-//   TextDetector textDetector = GoogleMlKit.vision.textDetector();
-//   bool isBusy = false;
-//   CustomPaint? customPaint;
-
-//   @override
-//   void dispose() async {
-//     super.dispose();
-//     await textDetector.close();
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return CameraView(
-//       title: "Text Detector",
-//       customPaint: customPaint,
-//       onImage: (inputImage) {
-//         processImage(inputImage);
-//       },
-//     );
-//   }
-
-//   Future<void> processImage(InputImage inputImage) async {
-//     if (isBusy) return;
-//     isBusy = true;
-//     final recognisedText = await textDetector.processImage(inputImage);
-//     print('{==FOUND ${recognisedText.blocks.length} TEXTBLOCKS==}');
-//     if (inputImage.inputImageData?.size != null &&
-//         inputImage.inputImageData?.imageRotation != null) {
-//       final painter = TextDetectorPainter(
-//           recognisedText,
-//           inputImage.inputImageData!.size,
-//           inputImage.inputImageData!.imageRotation);
-//       customPaint = CustomPaint(painter: painter);
-//     } else {
-//       customPaint = null;
-//     }
-//     isBusy = false;
-//     if (mounted) {
-//       setState(() {});
-//     }
-//   }
-// }

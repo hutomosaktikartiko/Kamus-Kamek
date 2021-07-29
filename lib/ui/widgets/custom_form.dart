@@ -13,6 +13,7 @@ class CustomForm extends StatelessWidget {
       this.minLines,
       this.onChanged,
       this.hintStyle,
+      this.onTapLabel,
       this.isShowBorder = false})
       : super(key: key);
 
@@ -22,22 +23,29 @@ class CustomForm extends StatelessWidget {
   final bool isShowBorder;
   final bool readOnly;
   final int? maxLines, minLines;
-  final Function? onChanged;
+  final Function? onChanged, onTapLabel;
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          labelText ?? "English",
-          style: (labelStyle == null)
-              ? mainColor2FontStyle.copyWith(
-                  fontSize: 14, fontWeight: FontWeight.w500)
-              : labelStyle,
+        TextButton(
+          onPressed: () {
+            if (onTapLabel != null) {
+              onTapLabel!();
+            }
+          },
+          child: Text(
+            labelText ?? "English",
+            style: (labelStyle == null)
+                ? mainColor2FontStyle.copyWith(
+                    fontSize: 14, fontWeight: FontWeight.w500)
+                : labelStyle,
+          ),
         ),
         SizedBox(
-          height: 19,
+          height: 5,
         ),
         TextFormField(
           controller: controller,

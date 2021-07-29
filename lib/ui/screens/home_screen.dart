@@ -96,10 +96,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     GestureDetector(
                         onTap: () {},
-                        child: Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 10),
-                          child: Icon(Icons.swap_horiz),
-                        )),
+                        child: Icon(Icons.swap_horiz),
+                        ),
                     TextButton(
                       style: TextButton.styleFrom(
                           padding: EdgeInsets.symmetric(horizontal: 10)),
@@ -136,6 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   maxLines: 10,
                   hintText: country1.hintText,
                   labelText: country1.country,
+                  onTapLabel: () => buildBottomSheet(true),
                   onChanged: () {
                     translateText(textEditingController1.text);
                   },
@@ -151,6 +150,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   textEditingController2,
                   readOnly: true,
                   hintText: country2.hintText,
+                  onTapLabel: () => buildBottomSheet(false),
                   labelStyle: greyFontStyle.copyWith(
                       fontSize: 14, fontWeight: FontWeight.w500),
                   labelText: country2.country,
