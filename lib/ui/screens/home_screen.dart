@@ -5,16 +5,14 @@ import 'package:kamus_kamek/config/text_style.dart';
 import 'package:kamus_kamek/models/api_return_value.dart';
 import 'package:kamus_kamek/models/country_model.dart';
 import 'package:kamus_kamek/models/translation_model.dart';
+import 'package:kamus_kamek/services/country_services.dart';
 import 'package:kamus_kamek/services/image_services.dart';
 import 'package:kamus_kamek/ui/screens/result_screen.dart';
 import 'package:kamus_kamek/ui/screens/setting_screen.dart';
 import 'package:kamus_kamek/ui/widgets/custom_form.dart';
 import 'package:kamus_kamek/ui/widgets/custom_toast.dart';
-import 'package:kamus_kamek/ui/widgets/loading_indicator.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:kamus_kamek/cubit/cubit.dart';
 import 'package:kamus_kamek/services/translation_services.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -95,9 +93,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: buildSelectedCountryCard(country1),
                     ),
                     GestureDetector(
-                        onTap: () {},
-                        child: Icon(Icons.swap_horiz),
-                        ),
+                      onTap: () {},
+                      child: Icon(Icons.swap_horiz),
+                    ),
                     TextButton(
                       style: TextButton.styleFrom(
                           padding: EdgeInsets.symmetric(horizontal: 10)),
@@ -175,68 +173,55 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context) {
           return SizedBox(
               height: SizeConfig.screenHeight * 0.9,
-              child: BlocBuilder<CountryCubit, CountryState>(
-                builder: (context, state) {
-                  if (state is CountryLoaded) {
-                    return SingleChildScrollView(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: state.countrys
-                            .map((e) => InkWell(
-                                  onTap: () {
-                                    closeScreen(context);
-                                    if (isCountry1) {
-                                      country1 = e;
-                                    } else {
-                                      country2 = e;
-                                    }
-                                    translateText(textEditingController1.text);
-                                    setState(() {});
-                                  },
-                                  child: Container(
-                                      width: SizeConfig.screenWidth,
-                                      padding: EdgeInsets.symmetric(
-                                          vertical: 15,
-                                          horizontal: SizeConfig.defaultMargin),
-                                      child: Row(
-                                        children: [
-                                          ClipRRect(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                            child: FadeInImage(
-                                              placeholder: AssetImage(
-                                                  "assets/images/placeholder.jpg"),
-                                              height: 26,
-                                              width: 26,
-                                              fit: BoxFit.cover,
-                                              image: NetworkImage("${e.flagUrl}"),
-                                            ),
-                                          ),
-                                          SizedBox(
-                                            width: 10,
-                                          ),
-                                          Expanded(
-                                            child: Text(
-                                              e.country!,
-                                              style: blackFontStyle.copyWith(
-                                                  fontSize: 15),
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                          ),
-                                        ],
-                                      )),
-                                ))
-                            .toList(),
-                      ),
-                    );
-                  } else if (state is CountryLoadingFailed) {
-                    customToast(state.message);
-                    // TODO: Error Screen
-                    return Container();
-                  } else {
-                    return loadingIndicator();
-                  }
-                },
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: CountryServices.getCountry()
+                      .map((e) => InkWell(
+                            onTap: () {
+                              closeScreen(context);
+                              if (isCountry1) {
+                                country1 = e;
+                              } else {
+                                country2 = e;
+                              }
+                              translateText(textEditingController1.text);
+                              setState(() {});
+                            },
+                            child: Container(
+                                width: SizeConfig.screenWidth,
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 15,
+                                    horizontal: SizeConfig.defaultMargin),
+                                child: Row(
+                                  children: [
+                                    ClipRRect(
+                                      borderRadius: BorderRadius.circular(10),
+                                      child: FadeInImage(
+                                        placeholder: AssetImage(
+                                            "assets/images/placeholder.jpg"),
+                                        height: 26,
+                                        width: 26,
+                                        fit: BoxFit.cover,
+                                        image: NetworkImage("${e.flagUrl}"),
+                                      ),
+                                    ),
+                                    SizedBox(
+                                      width: 10,
+                                    ),
+                                    Expanded(
+                                      child: Text(
+                                        e.country!,
+                                        style: blackFontStyle.copyWith(
+                                            fontSize: 15),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                )),
+                          ))
+                      .toList(),
+                ),
               ));
         });
   }
