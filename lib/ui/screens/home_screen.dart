@@ -93,7 +93,13 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: buildSelectedCountryCard(country1),
                     ),
                     GestureDetector(
-                      onTap: () {},
+                      onTap: () {
+                        CountryModel swicthCountry = country1;
+                        setState(() {
+                          country1 = country2;
+                          country2 = swicthCountry;
+                        });
+                      },
                       child: Icon(Icons.swap_horiz),
                     ),
                     TextButton(
