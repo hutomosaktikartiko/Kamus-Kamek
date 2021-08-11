@@ -9,6 +9,7 @@ import 'package:kamus_kamek/models/translation_model.dart';
 import 'package:kamus_kamek/services/country_services.dart';
 import 'package:kamus_kamek/services/translation_services.dart';
 import 'package:kamus_kamek/ui/widgets/custom_form.dart';
+import 'package:kamus_kamek/ui/widgets/custom_label_flag_and_country.dart';
 import 'package:kamus_kamek/ui/widgets/custom_toast.dart';
 import 'package:kamus_kamek/ui/widgets/loading_indicator.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
@@ -126,8 +127,11 @@ class _ResultScreenState extends State<ResultScreen> {
                     CustomForm(
                       textEditingController1,
                       maxLines: 10,
-                      readOnly: true,
+                      onTapLabel: () => buildListSelectCountryItem(true),
                       labelText: country1.country,
+                      onChanged: () {
+                        translateText(textEditingController1.text);
+                      },
                     ),
                     SizedBox(
                       height: 50,
@@ -139,7 +143,7 @@ class _ResultScreenState extends State<ResultScreen> {
                           fontSize: 14, fontWeight: FontWeight.w500),
                       labelText: country2.country,
                       maxLines: 10,
-                      onTapLabel: () => buildBottomSheet(false),
+                      onTapLabel: () => buildListSelectCountryItem(false),
                       hintStyle: greyFontStyle.copyWith(
                           fontSize: 30, fontWeight: FontWeight.w600),
                     )
@@ -150,7 +154,7 @@ class _ResultScreenState extends State<ResultScreen> {
     );
   }
 
-  void buildBottomSheet(bool isCountry1) {
+  void buildListSelectCountryItem(bool isCountry1) {
     showModalBottomSheet(
         context: context,
         shape: RoundedRectangleBorder(
@@ -179,32 +183,7 @@ class _ResultScreenState extends State<ResultScreen> {
                                 padding: EdgeInsets.symmetric(
                                     vertical: 15,
                                     horizontal: SizeConfig.defaultMargin),
-                                child: Row(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: FadeInImage(
-                                        placeholder: AssetImage(
-                                            "assets/images/placeholder.jpg"),
-                                        height: 26,
-                                        width: 26,
-                                        fit: BoxFit.cover,
-                                        image: NetworkImage("${e.flagUrl}"),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    Expanded(
-                                      child: Text(
-                                        e.country!,
-                                        style: blackFontStyle.copyWith(
-                                            fontSize: 15),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                )),
+                                child: CustomLabelFlagAndCountry(e)),
                           ))
                       .toList(),
                 ),
