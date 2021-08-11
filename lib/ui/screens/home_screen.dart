@@ -10,6 +10,7 @@ import 'package:kamus_kamek/services/image_services.dart';
 import 'package:kamus_kamek/ui/screens/result_screen.dart';
 import 'package:kamus_kamek/ui/screens/setting_screen.dart';
 import 'package:kamus_kamek/ui/widgets/custom_form.dart';
+import 'package:kamus_kamek/ui/widgets/custom_label_flag_and_country.dart';
 import 'package:kamus_kamek/ui/widgets/custom_toast.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
@@ -33,11 +34,15 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void initState() {
-    country1 = listCountries
-        .firstWhere((element) => element.country == "English (US)");
-    country2 =
-        listCountries.firstWhere((element) => element.country == "Indonesian");
+    setInitValue();
     super.initState();
+  }
+
+  void setInitValue() {
+    country1 = CountryServices.getCountry()
+        .firstWhere((element) => element.country == "English (US)");
+    country2 = CountryServices.getCountry()
+        .firstWhere((element) => element.country == "Indonesian");
   }
 
   Future translateText(String text) async {
@@ -86,7 +91,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     TextButton(
                       style: TextButton.styleFrom(
-                          padding: EdgeInsets.symmetric(horizontal: 10)),
+                          padding: EdgeInsets.symmetric(horizontal: 5)),
                       onPressed: () {
                         buildBottomSheet(true);
                       },
@@ -104,7 +109,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                     TextButton(
                       style: TextButton.styleFrom(
-                          padding: EdgeInsets.symmetric(horizontal: 10)),
+                          padding: EdgeInsets.symmetric(horizontal: 5)),
                       onPressed: () {
                         buildBottomSheet(false);
                       },
@@ -199,32 +204,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 padding: EdgeInsets.symmetric(
                                     vertical: 15,
                                     horizontal: SizeConfig.defaultMargin),
-                                child: Row(
-                                  children: [
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(10),
-                                      child: FadeInImage(
-                                        placeholder: AssetImage(
-                                            "assets/images/placeholder.jpg"),
-                                        height: 26,
-                                        width: 26,
-                                        fit: BoxFit.cover,
-                                        image: NetworkImage("${e.flagUrl}"),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 10,
-                                    ),
-                                    Expanded(
-                                      child: Text(
-                                        e.country!,
-                                        style: blackFontStyle.copyWith(
-                                            fontSize: 15),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                )),
+                                child: CustomLabelFlagAndCountry(e)),
                           ))
                       .toList(),
                 ),
@@ -234,32 +214,8 @@ class _HomeScreenState extends State<HomeScreen> {
 
   SizedBox buildSelectedCountryCard(CountryModel country) {
     return SizedBox(
-      width: SizeConfig.screenWidth * 0.3,
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: FadeInImage(
-              placeholder: AssetImage("assets/images/placeholder.jpg"),
-              height: 26,
-              width: 26,
-              fit: BoxFit.cover,
-              image: NetworkImage("${country.flagUrl}"),
-            ),
-          ),
-          SizedBox(
-            width: 10,
-          ),
-          Expanded(
-            child: Text(
-              country.country ?? "",
-              style: blackFontStyle.copyWith(
-                  fontSize: 14, fontWeight: FontWeight.w500),
-              overflow: TextOverflow.ellipsis,
-            ),
-          )
-        ],
-      ),
+      width: SizeConfig.screenWidth * 0.33,
+      child: CustomLabelFlagAndCountry(country),
     );
   }
 
