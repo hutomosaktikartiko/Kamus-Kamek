@@ -61,22 +61,6 @@ class _ResultScreenState extends State<ResultScreen> {
           await languageIdentifier.identifyLanguage(text);
       print("{ LANGUAGE IDENTIFICATION $languageIdentification}");
 
-      // if (languageIdentification == "und") {
-      //   textEditingController1 = TextEditingController();
-      //   textEditingController2 = TextEditingController();
-
-      // releaseResources();
-      //   closeScreen(context);
-      //   customToast("Tidak dapat membaca teks");
-      // }
-
-      // final OnDeviceTranslator onDeviceTranslator = GoogleMlKit.nlp
-      //     .onDeviceTranslator(
-      //         sourceLanguage: languageIdentification, targetLanguage: "id");
-
-      // final String textTranslated = await onDeviceTranslator.translateText(text);
-      // print("{ TEXT TRANSLATED $textTranslated}");
-
       country2 = listCountries
           .firstWhere((element) => element.country == "Indonesian");
 
@@ -115,18 +99,20 @@ class _ResultScreenState extends State<ResultScreen> {
     }
   }
 
-  Future translateText(String text) async {
+  Future<String?> translateText(
+      {required String text, required String target, String? source}) async {
+    print("{ TEXT WILL TRANSLATE $text}");
+    print("{ COUNTRY1 ${country1.code}}");
+    print("{ COUNTRY2 ${country2.code}}");
     ApiReturnValue<TranslationModel> result =
         await TranslationServices.translateText(
-            text: text, target: country2.code!, source: country1.code);
+            text: text, target: target, source: source);
 
     if (result.value != null) {
-      setState(() {
-        textEditingController2 =
-            TextEditingController(text: result.value?.translatedText);
-      });
+      return result.value?.translatedText;
     } else {
       customToast(result.message!);
+      return "";
     }
   }
 
@@ -172,8 +158,15 @@ class _ResultScreenState extends State<ResultScreen> {
                       maxLines: 10,
                       onTapLabel: () => buildListSelectCountryItem(true),
                       labelText: country1.country,
-                      onChanged: () {
-                        translateText(textEditingController1.text);
+                      onChanged: () async {
+                        String? result = await translateText(
+                            text: textEditingController1.text,
+                            source: country1.code,
+                            target: country2.code!);
+                        setState(() {
+                          textEditingController2 =
+                              TextEditingController(text: result);
+                        });
                       },
                     ),
                     SizedBox(
@@ -214,14 +207,26 @@ class _ResultScreenState extends State<ResultScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: CountryServices.getCountry()
                       .map((e) => InkWell(
-                            onTap: () {
+                            onTap: () async {
                               closeScreen(context);
                               if (isCountry1) {
+                                String? result = await translateText(
+                                    text: textEditingController1.text,
+                                    target: e.code!);
+                                textEditingController1 =
+                                    TextEditingController(text: result);
+
                                 country1 = e;
                               } else {
                                 country2 = e;
                               }
-                              translateText(textEditingController1.text);
+                              String? result = await translateText(
+                                  text: textEditingController1.text,
+                                  source: country1.code,
+                                  target: country2.code!);
+                              textEditingController2 =
+                                  TextEditingController(text: result);
+
                               setState(() {});
                             },
                             child: Container(
