@@ -40,6 +40,8 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   final TextDetector textDetector = GoogleMlKit.vision.textDetector();
+  final LanguageIdentifier languageIdentifier =
+      GoogleMlKit.nlp.languageIdentifier();
 
   Future recognisedText() async {
     final RecognisedText recognisedText =
@@ -55,37 +57,62 @@ class _ResultScreenState extends State<ResultScreen> {
         }
       }
 
+      final String languageIdentification =
+          await languageIdentifier.identifyLanguage(text);
+      print("{ LANGUAGE IDENTIFICATION $languageIdentification}");
+
+      // if (languageIdentification == "und") {
+      //   textEditingController1 = TextEditingController();
+      //   textEditingController2 = TextEditingController();
+
+      // releaseResources();
+      //   closeScreen(context);
+      //   customToast("Tidak dapat membaca teks");
+      // }
+
+      // final OnDeviceTranslator onDeviceTranslator = GoogleMlKit.nlp
+      //     .onDeviceTranslator(
+      //         sourceLanguage: languageIdentification, targetLanguage: "id");
+
+      // final String textTranslated = await onDeviceTranslator.translateText(text);
+      // print("{ TEXT TRANSLATED $textTranslated}");
+
       country2 = listCountries
           .firstWhere((element) => element.country == "Indonesian");
 
       ApiReturnValue<TranslationModel> result =
           await TranslationServices.translateText(
-              text: text, target: country2.code ?? "id");
+              text: text, target: country2.code!);
 
-      if (result.value != null) {
-        textEditingController1 = TextEditingController(text: text);
-        textEditingController2 =
-            TextEditingController(text: "${result.value?.translatedText}");
-        country1 = listCountries.firstWhere((element) =>
-            (element.code == result.value!.dectectedSourceLanguage));
-      } else {
+      if (result.value == null) {
         textEditingController1 = TextEditingController();
         textEditingController2 = TextEditingController();
-        country1 = listCountries
-            .firstWhere((element) => element.country == "English (US)");
-        country2 = listCountries
-            .firstWhere((element) => element.country == "Indonesian");
-        customToast(
-            result.message ?? "Gagal menerjemahkan, silahkan coba kembali!");
+
+        releaseResources();
+        closeScreen(context);
+        customToast("Tidak dapat membaca teks");
       }
+
+      textEditingController1 = TextEditingController(text: text);
+      textEditingController2 =
+          TextEditingController(text: "${result.value?.translatedText}");
+      country1 = listCountries.firstWhere(
+          (element) => (element.code == result.value!.dectectedSourceLanguage));
     } else {
+      textEditingController1 = TextEditingController();
+      textEditingController2 = TextEditingController();
+
+      releaseResources();
       closeScreen(context);
       customToast("Tidak dapat membaca teks");
     }
 
-    setState(() {
-      isLoading = false;
-    });
+    if (mounted) {
+      setState(() {
+        isLoading = false;
+      });
+      releaseResources();
+    }
   }
 
   Future translateText(String text) async {
@@ -103,21 +130,37 @@ class _ResultScreenState extends State<ResultScreen> {
     }
   }
 
+  void releaseResources() {
+    languageIdentifier.close();
+    textDetector.close();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: (isLoading)
-          ? Center(child: loadingIndicator())
-          : Padding(
-              padding: EdgeInsets.fromLTRB(
-                  SizeConfig.defaultMargin, 40, SizeConfig.defaultMargin, 40),
-              child: SingleChildScrollView(
+    return WillPopScope(
+      onWillPop: () {
+        releaseResources();
+
+        return Future.value(true);
+      },
+      child: Scaffold(
+        backgroundColor: Colors.white,
+        body: (isLoading)
+            ? Center(child: loadingIndicator())
+            : SingleChildScrollView(
+                padding:
+                    EdgeInsets.symmetric(horizontal: SizeConfig.defaultMargin),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    SizedBox(
+                      height: 40,
+                    ),
                     GestureDetector(
-                        onTap: () => closeScreen(context),
+                        onTap: () {
+                          releaseResources();
+                          closeScreen(context);
+                        },
                         child: Icon(
                           Icons.close,
                         )),
@@ -146,11 +189,14 @@ class _ResultScreenState extends State<ResultScreen> {
                       onTapLabel: () => buildListSelectCountryItem(false),
                       hintStyle: greyFontStyle.copyWith(
                           fontSize: 30, fontWeight: FontWeight.w600),
+                    ),
+                    SizedBox(
+                      height: 40,
                     )
                   ],
                 ),
               ),
-            ),
+      ),
     );
   }
 

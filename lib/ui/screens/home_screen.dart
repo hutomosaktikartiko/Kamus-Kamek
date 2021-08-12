@@ -45,18 +45,20 @@ class _HomeScreenState extends State<HomeScreen> {
         .firstWhere((element) => element.country == "Indonesian");
   }
 
-  Future translateText(String text) async {
+  Future<String?> translateText(
+      {required String text, required String target, String? source}) async {
+    print("{ TEXT WILL TRANSLATE $text}");
+    print("{ COUNTRY1 ${country1.code}}");
+    print("{ COUNTRY2 ${country2.code}}");
     ApiReturnValue<TranslationModel> result =
         await TranslationServices.translateText(
-            text: text, target: country2.code!, source: country1.code);
+            text: text, target: target, source: source);
 
     if (result.value != null) {
-      setState(() {
-        textEditingController2 =
-            TextEditingController(text: result.value?.translatedText);
-      });
+      return result.value?.translatedText;
     } else {
       customToast(result.message!);
+      return "";
     }
   }
 
@@ -98,11 +100,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: buildSelectedCountryCard(country1),
                     ),
                     GestureDetector(
-                      onTap: () {
+                      onTap: () async {
                         CountryModel swicthCountry = country1;
+                        String lastValue = textEditingController2.text;
                         setState(() {
                           country1 = country2;
                           country2 = swicthCountry;
+                          textEditingController2 = TextEditingController(
+                              text: textEditingController1.text);
+                          textEditingController1 =
+                              TextEditingController(text: lastValue);
                         });
                       },
                       child: Icon(Icons.swap_horiz),
@@ -144,8 +151,15 @@ class _HomeScreenState extends State<HomeScreen> {
                   hintText: country1.hintText,
                   labelText: country1.country,
                   onTapLabel: () => buildBottomSheet(true),
-                  onChanged: () {
-                    translateText(textEditingController1.text);
+                  onChanged: () async {
+                    String? result = await translateText(
+                        text: textEditingController1.text,
+                        source: country1.code,
+                        target: country2.code!);
+                    setState(() {
+                      textEditingController2 =
+                          TextEditingController(text: result);
+                    });
                   },
                 ),
                 SizedBox(
@@ -189,14 +203,26 @@ class _HomeScreenState extends State<HomeScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: CountryServices.getCountry()
                       .map((e) => InkWell(
-                            onTap: () {
+                            onTap: () async {
                               closeScreen(context);
                               if (isCountry1) {
+                                String? result = await translateText(
+                                    text: textEditingController1.text,
+                                    target: e.code!);
+                                textEditingController1 =
+                                    TextEditingController(text: result);
+
                                 country1 = e;
                               } else {
                                 country2 = e;
                               }
-                              translateText(textEditingController1.text);
+                              String? result = await translateText(
+                                  text: textEditingController1.text,
+                                  source: country1.code,
+                                  target: country2.code!);
+                              textEditingController2 =
+                                  TextEditingController(text: result);
+
                               setState(() {});
                             },
                             child: Container(
@@ -230,9 +256,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () async {
                     Navigator.pop(context);
                     try {
-                      ImageServices.selectImage(isGallery: false).then(
-                          (value) => startScreen(_scaffold.currentContext!,
-                              ResultScreen(File(value.path))));
+                      var result =
+                          await ImageServices.selectImage(isGallery: false);
+                      if (result != null) {
+                        startScreen(_scaffold.currentContext!,
+                            ResultScreen(File(result.path)));
+                      }
                     } catch (e) {
                       print("ERROR $e");
                       customToast(e.toString());
@@ -245,9 +274,11 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () async {
                     Navigator.pop(context);
                     try {
-                      ImageServices.selectImage(isGallery: true).then((value) =>
-                          startScreen(_scaffold.currentContext!,
-                              ResultScreen(File(value.path))));
+                     var result = await ImageServices.selectImage(isGallery: true);
+                     if (result != null) {
+                        startScreen(_scaffold.currentContext!,
+                            ResultScreen(File(result.path)));
+                      }
                     } catch (e) {
                       print("ERROR $e");
                       customToast(e.toString());
