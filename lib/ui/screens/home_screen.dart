@@ -2,19 +2,21 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:kamus_kamek/config/text_style.dart';
+import 'package:kamus_kamek/cubit/language_cubit.dart';
 import 'package:kamus_kamek/models/api_return_value.dart';
 import 'package:kamus_kamek/models/country_model.dart';
 import 'package:kamus_kamek/models/translation_model.dart';
-import 'package:kamus_kamek/services/country_services.dart';
 import 'package:kamus_kamek/services/image_services.dart';
 import 'package:kamus_kamek/ui/screens/result_screen.dart';
 import 'package:kamus_kamek/ui/screens/setting_screen.dart';
 import 'package:kamus_kamek/ui/widgets/custom_form.dart';
 import 'package:kamus_kamek/ui/widgets/custom_label_flag_and_country.dart';
 import 'package:kamus_kamek/ui/widgets/custom_toast.dart';
+import 'package:kamus_kamek/ui/widgets/loading_indicator.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
 import 'package:kamus_kamek/services/translation_services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -32,6 +34,8 @@ class _HomeScreenState extends State<HomeScreen> {
   TextEditingController textEditingController1 = TextEditingController();
   TextEditingController textEditingController2 = TextEditingController();
 
+  bool isLoading = true;
+
   @override
   void initState() {
     setInitValue();
@@ -39,10 +43,21 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void setInitValue() {
-    country1 = CountryServices.getCountry()
-        .firstWhere((element) => element.country == "English (US)");
-    country2 = CountryServices.getCountry()
-        .firstWhere((element) => element.country == "Indonesian");
+    if (context.read<LanguageCubit>().state is LanguageLoaded) {
+      if ((context.read<LanguageCubit>().state as LanguageLoaded).listCountries !=
+          []) {
+        country1 = (context.read<LanguageCubit>().state as LanguageLoaded)
+            .listCountries
+            .firstWhere((element) => element.country == "English (US)");
+        country2 = (context.read<LanguageCubit>().state as LanguageLoaded)
+            .listCountries
+            .firstWhere((element) => element.country == "Indonesian");
+      }
+
+      setState(() {
+        isLoading = false;
+      });
+    }
   }
 
   Future<String?> translateText(
@@ -198,43 +213,49 @@ class _HomeScreenState extends State<HomeScreen> {
         builder: (context) {
           return SizedBox(
               height: SizeConfig.screenHeight * 0.9,
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: CountryServices.getCountry()
-                      .map((e) => InkWell(
-                            onTap: () async {
-                              closeScreen(context);
-                              if (isCountry1) {
-                                String? result = await translateText(
-                                    text: textEditingController1.text,
-                                    target: e.code!);
-                                textEditingController1 =
-                                    TextEditingController(text: result);
+              child: (isLoading)
+                  ? Center(
+                      child: loadingIndicator(),
+                    )
+                  : SingleChildScrollView(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: (context.read<LanguageCubit>().state
+                                as LanguageLoaded)
+                            .listCountries
+                            .map((e) => InkWell(
+                                  onTap: () async {
+                                    closeScreen(context);
+                                    if (isCountry1) {
+                                      String? result = await translateText(
+                                          text: textEditingController1.text,
+                                          target: e.code!);
+                                      textEditingController1 =
+                                          TextEditingController(text: result);
 
-                                country1 = e;
-                              } else {
-                                country2 = e;
-                              }
-                              String? result = await translateText(
-                                  text: textEditingController1.text,
-                                  source: country1.code,
-                                  target: country2.code!);
-                              textEditingController2 =
-                                  TextEditingController(text: result);
+                                      country1 = e;
+                                    } else {
+                                      country2 = e;
+                                    }
+                                    String? result = await translateText(
+                                        text: textEditingController1.text,
+                                        source: country1.code,
+                                        target: country2.code!);
+                                    textEditingController2 =
+                                        TextEditingController(text: result);
 
-                              setState(() {});
-                            },
-                            child: Container(
-                                width: SizeConfig.screenWidth,
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 15,
-                                    horizontal: SizeConfig.defaultMargin),
-                                child: CustomLabelFlagAndCountry(e)),
-                          ))
-                      .toList(),
-                ),
-              ));
+                                    setState(() {});
+                                  },
+                                  child: Container(
+                                      width: SizeConfig.screenWidth,
+                                      padding: EdgeInsets.symmetric(
+                                          vertical: 15,
+                                          horizontal: SizeConfig.defaultMargin),
+                                      child: CustomLabelFlagAndCountry(e)),
+                                ))
+                            .toList(),
+                      ),
+                    ));
         });
   }
 
@@ -274,8 +295,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   onTap: () async {
                     Navigator.pop(context);
                     try {
-                     var result = await ImageServices.selectImage(isGallery: true);
-                     if (result != null) {
+                      var result =
+                          await ImageServices.selectImage(isGallery: true);
+                      if (result != null) {
                         startScreen(_scaffold.currentContext!,
                             ResultScreen(File(result.path)));
                       }

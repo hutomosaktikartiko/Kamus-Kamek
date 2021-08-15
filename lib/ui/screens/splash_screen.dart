@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:kamus_kamek/config/custom_color.dart';
+import 'package:kamus_kamek/cubit/language_cubit.dart';
 import 'package:kamus_kamek/ui/screens/home_screen.dart';
 import 'package:kamus_kamek/ui/screens/onboarding_screen.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
 import 'package:kamus_kamek/utils/preferences.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({Key? key}) : super(key: key);
@@ -17,8 +19,14 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    Future.delayed(Duration(seconds: 1)).then((value) => Preferences.instance()
-        .then((value) => value.isNewUser == null
+    getLanguages();
+  }
+
+  void getLanguages() async {
+    await context.read<LanguageCubit>().getLanguages();
+
+    Future.delayed(Duration(milliseconds: 500)).then((value) =>
+        Preferences.instance().then((value) => value.isNewUser == null
             ? replaceScreen(context, OnBoardingScreen())
             : replaceScreen(context, HomeScreen())));
   }
