@@ -60,9 +60,9 @@ class _ResultScreenState extends State<ResultScreen> {
         }
       }
 
-      final String languageIdentification =
-          await languageIdentifier.identifyLanguage(text);
-      print("{ LANGUAGE IDENTIFICATION $languageIdentification}");
+      // final String languageIdentification =
+      //     await languageIdentifier.identifyLanguage(text);
+      // print("{ LANGUAGE IDENTIFICATION $languageIdentification}");
 
       ApiReturnValue<TranslationModel> result =
           await TranslationServices.translateText(text: text, target: "id");
