@@ -17,10 +17,7 @@ class CountryServices {
       return ApiReturnValue(
           value: docs.map((e) => CountryModel.fromJson(e)).toList());
     } catch (e) {
-      return ApiReturnValue(message: "Gagal mendapatkan list countries");
+      return ApiReturnValue(message: "Gagal mendapatkan list countries",);
     }
   }
-
-  static Stream<DocumentSnapshot> getCloudTranslationAPIKey() =>
-      _firestore.collection("api_key").doc("cloud_translation").snapshots();
 }

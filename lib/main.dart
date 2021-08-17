@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:kamus_kamek/cubit/country_cubit.dart';
+import 'package:kamus_kamek/cubit/api_key/api_key_cubit.dart';
+import 'package:kamus_kamek/cubit/country/country_cubit.dart';
 import 'package:kamus_kamek/ui/screens/splash_screen.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,6 +21,9 @@ class MyApp extends StatelessWidget {
       providers: [
         BlocProvider(
           create: (context) => CountryCubit(),
+        ),
+        BlocProvider(
+          create: (context) => APIKeyCubit(),
         )
       ],
       child: MaterialApp(

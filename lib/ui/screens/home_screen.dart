@@ -2,7 +2,8 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:kamus_kamek/config/text_style.dart';
-import 'package:kamus_kamek/cubit/country_cubit.dart';
+import 'package:kamus_kamek/cubit/api_key/api_key_cubit.dart';
+import 'package:kamus_kamek/cubit/country/country_cubit.dart';
 import 'package:kamus_kamek/models/api_return_value.dart';
 import 'package:kamus_kamek/models/country_model.dart';
 import 'package:kamus_kamek/models/translation_model.dart';
@@ -51,8 +52,12 @@ class _HomeScreenState extends State<HomeScreen> {
       country2 = listCountries.firstWhere(
           (element) => element.country == "Indonesian",
           orElse: () => listCountries[1]);
+    } else {
+      // TODO: Condition if failed get data
     }
   }
+
+
 
   Future<String?> translateText(
       {required String text, required String target, String? source}) async {
@@ -61,7 +66,13 @@ class _HomeScreenState extends State<HomeScreen> {
     print("{ COUNTRY2 ${country2.code}}");
     ApiReturnValue<TranslationModel> result =
         await TranslationServices.translateText(
-            text: text, target: target, source: source);
+            apiKey: (context.read<APIKeyCubit>().state as APIKeyLoaded)
+                .listAPIKeys
+                .firstWhere((element) => element.name == "cloud_transaltion")
+                .key,
+            text: text,
+            target: target,
+            source: source);
 
     if (result.value != null) {
       return result.value?.translatedText;
