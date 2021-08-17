@@ -3,18 +3,18 @@ import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:kamus_kamek/config/text_style.dart';
+import 'package:kamus_kamek/cubit/country_cubit.dart';
 import 'package:kamus_kamek/models/api_return_value.dart';
 import 'package:kamus_kamek/models/country_model.dart';
 import 'package:kamus_kamek/models/translation_model.dart';
-import 'package:kamus_kamek/services/country_services.dart';
 import 'package:kamus_kamek/services/translation_services.dart';
 import 'package:kamus_kamek/ui/widgets/custom_form.dart';
-import 'package:kamus_kamek/ui/widgets/custom_label_flag_and_country.dart';
 import 'package:kamus_kamek/ui/widgets/custom_toast.dart';
 import 'package:kamus_kamek/ui/widgets/loading_indicator.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
 import 'package:google_ml_kit/google_ml_kit.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ResultScreen extends StatefulWidget {
   const ResultScreen(this.imageUrl, {Key? key}) : super(key: key);
@@ -57,35 +57,40 @@ class _ResultScreenState extends State<ResultScreen> {
         }
       }
 
-      final String languageIdentification =
-          await languageIdentifier.identifyLanguage(text);
-      print("{ LANGUAGE IDENTIFICATION $languageIdentification}");
+      // final String languageIdentification =
+      //     await languageIdentifier.identifyLanguage(text);
+      // print("{ LANGUAGE IDENTIFICATION $languageIdentification}");
 
-      country2 = listCountries
-          .firstWhere((element) => element.country == "Indonesian");
+      if (context.read<CountryCubit>().state is CountryLoaded) {
+        List<CountryModel> listCountries =
+            (context.read<CountryCubit>().state as CountryLoaded).listCountries;
+        country2 = listCountries.firstWhere(
+            (element) => element.country == "Indonesian",
+            orElse: () => listCountries[1]);
+      }
 
       ApiReturnValue<TranslationModel> result =
-          await TranslationServices.translateText(
-              text: text, target: country2.code!);
+          await TranslationServices.translateText(text: text, target: country2.code!);
 
       if (result.value == null) {
-        textEditingController1 = TextEditingController();
-        textEditingController2 = TextEditingController();
-
         releaseResources();
         closeScreen(context);
         customToast("Tidak dapat membaca teks");
       }
 
+      if (context.read<CountryCubit>().state is CountryLoaded) {
+        List<CountryModel> listCountries =
+            (context.read<CountryCubit>().state as CountryLoaded).listCountries;
+        country1 = listCountries.firstWhere(
+            (element) =>
+                element.country == result.value!.dectectedSourceLanguage,
+            orElse: () => listCountries[0]);
+      }
+
       textEditingController1 = TextEditingController(text: text);
       textEditingController2 =
           TextEditingController(text: "${result.value?.translatedText}");
-      country1 = listCountries.firstWhere(
-          (element) => (element.code == result.value!.dectectedSourceLanguage));
     } else {
-      textEditingController1 = TextEditingController();
-      textEditingController2 = TextEditingController();
-
       releaseResources();
       closeScreen(context);
       customToast("Tidak dapat membaca teks");
@@ -194,51 +199,51 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   void buildListSelectCountryItem(bool isCountry1) {
-    showModalBottomSheet(
-        context: context,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(10))),
-        isScrollControlled: true,
-        builder: (context) {
-          return SizedBox(
-              height: SizeConfig.screenHeight * 0.9,
-              child: SingleChildScrollView(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: CountryServices.getCountry()
-                      .map((e) => InkWell(
-                            onTap: () async {
-                              closeScreen(context);
-                              if (isCountry1) {
-                                String? result = await translateText(
-                                    text: textEditingController1.text,
-                                    target: e.code!);
-                                textEditingController1 =
-                                    TextEditingController(text: result);
+    // showModalBottomSheet(
+    //     context: context,
+    //     shape: RoundedRectangleBorder(
+    //         borderRadius: BorderRadius.vertical(top: Radius.circular(10))),
+    //     isScrollControlled: true,
+    //     builder: (context) {
+    //       return SizedBox(
+    //           height: SizeConfig.screenHeight * 0.9,
+    //           child: SingleChildScrollView(
+    //             child: Column(
+    //               crossAxisAlignment: CrossAxisAlignment.start,
+    //               children: CountryServices.getCountry()
+    //                   .map((e) => InkWell(
+    //                         onTap: () async {
+    //                           closeScreen(context);
+    //                           if (isCountry1) {
+    //                             String? result = await translateText(
+    //                                 text: textEditingController1.text,
+    //                                 target: e.code!);
+    //                             textEditingController1 =
+    //                                 TextEditingController(text: result);
 
-                                country1 = e;
-                              } else {
-                                country2 = e;
-                              }
-                              String? result = await translateText(
-                                  text: textEditingController1.text,
-                                  source: country1.code,
-                                  target: country2.code!);
-                              textEditingController2 =
-                                  TextEditingController(text: result);
+    //                             country1 = e;
+    //                           } else {
+    //                             country2 = e;
+    //                           }
+    //                           String? result = await translateText(
+    //                               text: textEditingController1.text,
+    //                               source: country1.code,
+    //                               target: country2.code!);
+    //                           textEditingController2 =
+    //                               TextEditingController(text: result);
 
-                              setState(() {});
-                            },
-                            child: Container(
-                                width: SizeConfig.screenWidth,
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 15,
-                                    horizontal: SizeConfig.defaultMargin),
-                                child: CustomLabelFlagAndCountry(e)),
-                          ))
-                      .toList(),
-                ),
-              ));
-        });
+    //                           setState(() {});
+    //                         },
+    //                         child: Container(
+    //                             width: SizeConfig.screenWidth,
+    //                             padding: EdgeInsets.symmetric(
+    //                                 vertical: 15,
+    //                                 horizontal: SizeConfig.defaultMargin),
+    //                             child: CustomLabelFlagAndCountry(e)),
+    //                       ))
+    //                   .toList(),
+    //             ),
+    //           ));
+    //     });
   }
 }
