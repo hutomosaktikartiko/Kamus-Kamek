@@ -10,6 +10,7 @@ import 'package:kamus_kamek/models/country_model.dart';
 import 'package:kamus_kamek/models/translation_model.dart';
 import 'package:kamus_kamek/services/translation_services.dart';
 import 'package:kamus_kamek/ui/widgets/custom_form.dart';
+import 'package:kamus_kamek/ui/widgets/custom_label_flag_and_country.dart';
 import 'package:kamus_kamek/ui/widgets/custom_toast.dart';
 import 'package:kamus_kamek/ui/widgets/loading_indicator.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
@@ -75,7 +76,7 @@ class _ResultScreenState extends State<ResultScreen> {
           await TranslationServices.translateText(
               apiKey: (context.read<APIKeyCubit>().state as APIKeyLoaded)
                   .listAPIKeys
-                  .firstWhere((element) => element.name == "cloud_transaltion")
+                  .firstWhere((element) => element.name == "cloud_translation")
                   .key,
               text: text,
               target: country2.code!);
@@ -121,7 +122,7 @@ class _ResultScreenState extends State<ResultScreen> {
         await TranslationServices.translateText(
             apiKey: (context.read<APIKeyCubit>().state as APIKeyLoaded)
                 .listAPIKeys
-                .firstWhere((element) => element.name == "cloud_transaltion")
+                .firstWhere((element) => element.name == "cloud_translation")
                 .key,
             text: text,
             target: target,
@@ -213,51 +214,65 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   void buildListSelectCountryItem(bool isCountry1) {
-    // showModalBottomSheet(
-    //     context: context,
-    //     shape: RoundedRectangleBorder(
-    //         borderRadius: BorderRadius.vertical(top: Radius.circular(10))),
-    //     isScrollControlled: true,
-    //     builder: (context) {
-    //       return SizedBox(
-    //           height: SizeConfig.screenHeight * 0.9,
-    //           child: SingleChildScrollView(
-    //             child: Column(
-    //               crossAxisAlignment: CrossAxisAlignment.start,
-    //               children: CountryServices.getCountry()
-    //                   .map((e) => InkWell(
-    //                         onTap: () async {
-    //                           closeScreen(context);
-    //                           if (isCountry1) {
-    //                             String? result = await translateText(
-    //                                 text: textEditingController1.text,
-    //                                 target: e.code!);
-    //                             textEditingController1 =
-    //                                 TextEditingController(text: result);
+    showModalBottomSheet(
+        context: context,
+        shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(top: Radius.circular(10))),
+        isScrollControlled: true,
+        builder: (context) {
+          return Container(
+              constraints: BoxConstraints(
+                maxHeight: SizeConfig.screenHeight * 0.9,
+                minHeight: SizeConfig.screenHeight * 0.5,
+              ),
+              child: SingleChildScrollView(
+                child: BlocBuilder<CountryCubit, CountryState>(
+                  builder: (context, state) {
+                    if (state is CountryLoaded) {
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: state.listCountries
+                            .map((e) => InkWell(
+                                  onTap: () async {
+                                    closeScreen(context);
+                                    if (isCountry1) {
+                                      String? result = await translateText(
+                                          text: textEditingController1.text,
+                                          target: e.code!);
+                                      textEditingController1 =
+                                          TextEditingController(text: result);
 
-    //                             country1 = e;
-    //                           } else {
-    //                             country2 = e;
-    //                           }
-    //                           String? result = await translateText(
-    //                               text: textEditingController1.text,
-    //                               source: country1.code,
-    //                               target: country2.code!);
-    //                           textEditingController2 =
-    //                               TextEditingController(text: result);
+                                      country1 = e;
+                                    } else {
+                                      country2 = e;
+                                    }
+                                    String? result = await translateText(
+                                        text: textEditingController1.text,
+                                        source: country1.code,
+                                        target: country2.code!);
+                                    textEditingController2 =
+                                        TextEditingController(text: result);
 
-    //                           setState(() {});
-    //                         },
-    //                         child: Container(
-    //                             width: SizeConfig.screenWidth,
-    //                             padding: EdgeInsets.symmetric(
-    //                                 vertical: 15,
-    //                                 horizontal: SizeConfig.defaultMargin),
-    //                             child: CustomLabelFlagAndCountry(e)),
-    //                       ))
-    //                   .toList(),
-    //             ),
-    //           ));
-    //     });
+                                    setState(() {});
+                                  },
+                                  child: Container(
+                                      width: SizeConfig.screenWidth,
+                                      padding: EdgeInsets.symmetric(
+                                          vertical: 15,
+                                          horizontal: SizeConfig.defaultMargin),
+                                      child: CustomLabelFlagAndCountry(e)),
+                                ))
+                            .toList(),
+                      );
+                    } else if (state is CountryLoadingFailed) {
+                      return SizedBox.shrink();
+                    } else {
+                      return Center(child: loadingIndicator());
+                    }
+                  },
+                ),
+              ));
+        });
   }
 }

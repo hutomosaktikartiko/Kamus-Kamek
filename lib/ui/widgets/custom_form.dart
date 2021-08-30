@@ -47,6 +47,7 @@ class CustomForm extends StatelessWidget {
         SizedBox(
           height: 5,
         ),
+        // TODO: Close keyboard when done and change screen
         TextFormField(
           controller: controller,
           readOnly: readOnly,
