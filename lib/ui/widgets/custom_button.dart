@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:kamus_kamek/config/custom_color.dart';
 import 'package:kamus_kamek/config/text_style.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
 

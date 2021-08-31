@@ -5,18 +5,19 @@ import 'package:kamus_kamek/ui/widgets/custom_button.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
 
 class CustomConnectionError extends StatelessWidget {
-  const CustomConnectionError({Key? key, this.message, this.onTap})
+  const CustomConnectionError({Key? key, this.message, this.onTap, this.height})
       : super(key: key);
 
   final String? message;
   final Function? onTap;
+  final double? height;
 
   @override
   Widget build(BuildContext context) {
     return Container(
        color: Colors.white,
        width: SizeConfig.screenWidth,
-      height: SizeConfig.screenHeight,
+      height: height ?? SizeConfig.screenHeight,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
