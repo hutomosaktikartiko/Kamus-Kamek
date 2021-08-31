@@ -1,8 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:kamus_kamek/models/api_return_value.dart';
 import 'package:kamus_kamek/models/translation_model.dart';
-import 'package:kamus_kamek/utils/keys.dart';
-import 'package:kamus_kamek/utils/preferences.dart';
 import 'package:kamus_kamek/utils/utils.dart';
 
 class TranslationServices {

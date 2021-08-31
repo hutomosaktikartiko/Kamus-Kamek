@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kamus_kamek/config/custom_color.dart';
 import 'package:kamus_kamek/config/text_style.dart';
 import 'package:kamus_kamek/ui/widgets/custom_button.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
@@ -53,6 +54,7 @@ class CustomConnectionError extends StatelessWidget {
           CustomButton(
             label: "Coba Lagi",
             width: 152,
+            backgroundColor: blue,
             onTap: () {
               if (onTap != null) {
                 onTap!();

@@ -35,51 +35,37 @@ class _ResultScreenState extends State<ResultScreen> {
   late CountryModel country1;
   late CountryModel country2;
 
+  List<CountryModel> listCountries = [];
+
   @override
   void initState() {
     super.initState();
-    recognisedText();
+    initData();
   }
 
   final TextDetector textDetector = GoogleMlKit.vision.textDetector();
   final LanguageIdentifier languageIdentifier =
       GoogleMlKit.nlp.languageIdentifier();
 
-  Future recognisedText() async {
-    final RecognisedText recognisedText =
-        await textDetector.processImage(InputImage.fromFile(widget.imageUrl));
-    if (recognisedText.blocks.length > 0) {
-      String text = "";
+  void initData() async {
+    String resultRecognised = await recognisedText();
 
-      for (TextBlock block in recognisedText.blocks) {
-        for (TextLine line in block.lines) {
-          for (TextElement word in line.elements) {
-            text = text + word.text + " ";
-          }
-        }
-      }
+    if (resultRecognised == "") {
+      releaseResources();
+      closeScreen(context);
+      customToast("Tidak dapat membaca teks");
+    }
 
-      // TODO: Will this be used?
-      // final String languageIdentification =
-      //     await languageIdentifier.identifyLanguage(text);
-      // print("{ LANGUAGE IDENTIFICATION $languageIdentification}");
+    if ((context.read<CountryCubit>().state is CountryLoaded) &&
+        (context.read<APIKeyCubit>().state is APIKeyLoaded)) {
+      listCountries =
+          (context.read<CountryCubit>().state as CountryLoaded).listCountries;
+      country2 = listCountries.firstWhere(
+          (element) => element.country == "Indonesian",
+          orElse: () => listCountries[1]);
 
-      if (context.read<CountryCubit>().state is CountryLoaded) {
-        List<CountryModel> listCountries =
-            (context.read<CountryCubit>().state as CountryLoaded).listCountries;
-        country2 = listCountries.firstWhere(
-            (element) => element.country == "Indonesian",
-            orElse: () => listCountries[1]);
-      }
-
-      ApiReturnValue<TranslationModel> result =
-          await TranslationServices.translateText(
-              apiKey: (context.read<APIKeyCubit>().state as APIKeyLoaded)
-                  .listAPIKeys
-                  .firstWhere((element) => element.name == "cloud_translation")
-                  .key,
-              text: text,
-              target: country2.code!);
+      ApiReturnValue? result =
+          await translateText(text: resultRecognised, target: country2.code!);
 
       if (result.value == null) {
         releaseResources();
@@ -87,22 +73,13 @@ class _ResultScreenState extends State<ResultScreen> {
         customToast("Tidak dapat membaca teks");
       }
 
-      if (context.read<CountryCubit>().state is CountryLoaded) {
-        List<CountryModel> listCountries =
-            (context.read<CountryCubit>().state as CountryLoaded).listCountries;
-        country1 = listCountries.firstWhere(
-            (element) =>
-                element.country == result.value!.dectectedSourceLanguage,
-            orElse: () => listCountries[0]);
-      }
+      country1 = listCountries.firstWhere(
+          (element) => element.country == result.value!.dectectedSourceLanguage,
+          orElse: () => listCountries[0]);
 
-      textEditingController1 = TextEditingController(text: text);
+      textEditingController1 = TextEditingController(text: resultRecognised);
       textEditingController2 =
           TextEditingController(text: "${result.value?.translatedText}");
-    } else {
-      releaseResources();
-      closeScreen(context);
-      customToast("Tidak dapat membaca teks");
     }
 
     if (mounted) {
@@ -113,7 +90,23 @@ class _ResultScreenState extends State<ResultScreen> {
     }
   }
 
-  Future<String?> translateText(
+  Future<String> recognisedText() async {
+    final RecognisedText recognisedText =
+        await textDetector.processImage(InputImage.fromFile(widget.imageUrl));
+    String text = "";
+
+    for (TextBlock block in recognisedText.blocks) {
+      for (TextLine line in block.lines) {
+        for (TextElement word in line.elements) {
+          text = text + word.text + " ";
+        }
+      }
+    }
+
+    return text;
+  }
+
+  Future<ApiReturnValue<TranslationModel>> translateText(
       {required String text, required String target, String? source}) async {
     ApiReturnValue<TranslationModel> result =
         await TranslationServices.translateText(
@@ -125,12 +118,11 @@ class _ResultScreenState extends State<ResultScreen> {
             target: target,
             source: source);
 
-    if (result.value != null) {
-      return result.value?.translatedText;
-    } else {
+    if (result.value == null) {
       customToast(result.message!);
-      return "";
     }
+
+    return result;
   }
 
   void releaseResources() {
@@ -178,13 +170,14 @@ class _ResultScreenState extends State<ResultScreen> {
                         onTapLabel: () => buildListSelectCountryItem(true),
                         labelText: country1.country,
                         onChanged: () async {
-                          String? result = await translateText(
-                              text: textEditingController1.text,
-                              source: country1.code,
-                              target: country2.code!);
+                          ApiReturnValue<TranslationModel>? result =
+                              await translateText(
+                                  text: textEditingController1.text,
+                                  source: country1.code,
+                                  target: country2.code!);
                           setState(() {
-                            textEditingController2 =
-                                TextEditingController(text: result);
+                            textEditingController2 = TextEditingController(
+                                text: result.value?.translatedText);
                           });
                         },
                       ),
@@ -226,51 +219,43 @@ class _ResultScreenState extends State<ResultScreen> {
                 minHeight: SizeConfig.screenHeight * 0.5,
               ),
               child: SingleChildScrollView(
-                child: BlocBuilder<CountryCubit, CountryState>(
-                  builder: (context, state) {
-                    if (state is CountryLoaded) {
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: state.listCountries
-                            .map((e) => InkWell(
-                                  onTap: () async {
-                                    closeScreen(context);
-                                    if (isCountry1) {
-                                      String? result = await translateText(
-                                          text: textEditingController1.text,
-                                          target: e.code!);
-                                      textEditingController1 =
-                                          TextEditingController(text: result);
-
-                                      country1 = e;
-                                    } else {
-                                      country2 = e;
-                                    }
-                                    String? result = await translateText(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: listCountries
+                      .map((e) => InkWell(
+                            onTap: () async {
+                              closeScreen(context);
+                              if (isCountry1) {
+                                ApiReturnValue<TranslationModel>? result =
+                                    await translateText(
                                         text: textEditingController1.text,
-                                        source: country1.code,
-                                        target: country2.code!);
-                                    textEditingController2 =
-                                        TextEditingController(text: result);
+                                        target: e.code!);
+                                textEditingController1 = TextEditingController(
+                                    text: result.value?.translatedText);
 
-                                    setState(() {});
-                                  },
-                                  child: Container(
-                                      width: SizeConfig.screenWidth,
-                                      padding: EdgeInsets.symmetric(
-                                          vertical: 15,
-                                          horizontal: SizeConfig.defaultMargin),
-                                      child: CustomLabelFlagAndCountry(e)),
-                                ))
-                            .toList(),
-                      );
-                    } else if (state is CountryLoadingFailed) {
-                      return SizedBox.shrink();
-                    } else {
-                      return Center(child: loadingIndicator());
-                    }
-                  },
+                                country1 = e;
+                              } else {
+                                country2 = e;
+                              }
+                              ApiReturnValue<TranslationModel>? result =
+                                  await translateText(
+                                      text: textEditingController1.text,
+                                      source: country1.code,
+                                      target: country2.code!);
+                              textEditingController2 = TextEditingController(
+                                  text: result.value?.translatedText);
+
+                              setState(() {});
+                            },
+                            child: Container(
+                                width: SizeConfig.screenWidth,
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 15,
+                                    horizontal: SizeConfig.defaultMargin),
+                                child: CustomLabelFlagAndCountry(e)),
+                          ))
+                      .toList(),
                 ),
               ));
         });

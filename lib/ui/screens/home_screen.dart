@@ -15,7 +15,6 @@ import 'package:kamus_kamek/ui/widgets/custom_connection_error.dart';
 import 'package:kamus_kamek/ui/widgets/custom_form.dart';
 import 'package:kamus_kamek/ui/widgets/custom_label_flag_and_country.dart';
 import 'package:kamus_kamek/ui/widgets/custom_toast.dart';
-import 'package:kamus_kamek/ui/widgets/loading_indicator.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
 import 'package:kamus_kamek/services/translation_services.dart';
@@ -40,6 +39,8 @@ class _HomeScreenState extends State<HomeScreen> {
   bool isLoading = true;
   bool isError = false;
 
+  List<CountryModel> listCountries = [];
+
   @override
   void initState() {
     setInitValue();
@@ -47,8 +48,9 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void setInitValue() {
-    if (context.read<CountryCubit>().state is CountryLoaded) {
-      List<CountryModel> listCountries =
+    if ((context.read<CountryCubit>().state is CountryLoaded) &&
+        (context.read<APIKeyCubit>().state is APIKeyLoaded)) {
+      listCountries =
           (context.read<CountryCubit>().state as CountryLoaded).listCountries;
       country1 = listCountries.firstWhere(
           (element) => element.country == "English (US)",
@@ -99,12 +101,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   message: "Terjadi Kesalahan Jaringan",
                   onTap: () async {
                     await context.read<CountryCubit>().getCountries();
+                    await context.read<APIKeyCubit>().getAPIKeys();
                     setInitValue();
                   },
                 )
               : buildBody()),
       floatingActionButton: (isError)
-          ? null : FloatingActionButton(
+          ? null
+          : FloatingActionButton(
               onPressed: () => showImageActionSheet(),
               child: Icon(Icons.camera),
             ),
@@ -118,7 +122,6 @@ class _HomeScreenState extends State<HomeScreen> {
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: ListView(
-          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           children: [
             SizedBox(height: 10),
             Padding(
@@ -174,10 +177,12 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             Container(
               height: SizeConfig.screenHeight * 0.859,
-              padding: EdgeInsets.symmetric(horizontal: SizeConfig.defaultMargin),
+              padding:
+                  EdgeInsets.symmetric(horizontal: SizeConfig.defaultMargin),
               decoration: BoxDecoration(
                   color: Colors.white,
-                  borderRadius: BorderRadius.only(topLeft: Radius.circular(40))),
+                  borderRadius:
+                      BorderRadius.only(topLeft: Radius.circular(40))),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -242,53 +247,42 @@ class _HomeScreenState extends State<HomeScreen> {
                 minHeight: SizeConfig.screenHeight * 0.5,
               ),
               child: SingleChildScrollView(
-                child: BlocBuilder<CountryCubit, CountryState>(
-                  builder: (context, state) {
-                    if (state is CountryLoaded) {
-                      return Column(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: state.listCountries
-                            .map((e) => InkWell(
-                                  onTap: () async {
-                                    closeScreen(context);
-                                    if (isCountry1) {
-                                      String? result = await translateText(
-                                          text: textEditingController1.text,
-                                          target: e.code!);
-                                      textEditingController1 =
-                                          TextEditingController(text: result);
+                  child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: listCountries
+                    .map((e) => InkWell(
+                          onTap: () async {
+                            closeScreen(context);
+                            if (isCountry1) {
+                              String? result = await translateText(
+                                  text: textEditingController1.text,
+                                  target: e.code!);
+                              textEditingController1 =
+                                  TextEditingController(text: result);
 
-                                      country1 = e;
-                                    } else {
-                                      country2 = e;
-                                    }
-                                    String? result = await translateText(
-                                        text: textEditingController1.text,
-                                        source: country1.code,
-                                        target: country2.code!);
-                                    textEditingController2 =
-                                        TextEditingController(text: result);
+                              country1 = e;
+                            } else {
+                              country2 = e;
+                            }
+                            String? result = await translateText(
+                                text: textEditingController1.text,
+                                source: country1.code,
+                                target: country2.code!);
+                            textEditingController2 =
+                                TextEditingController(text: result);
 
-                                    setState(() {});
-                                  },
-                                  child: Container(
-                                      width: SizeConfig.screenWidth,
-                                      padding: EdgeInsets.symmetric(
-                                          vertical: 15,
-                                          horizontal: SizeConfig.defaultMargin),
-                                      child: CustomLabelFlagAndCountry(e)),
-                                ))
-                            .toList(),
-                      );
-                    } else if (state is CountryLoadingFailed) {
-                      return SizedBox.shrink();
-                    } else {
-                      return Center(child: loadingIndicator());
-                    }
-                  },
-                ),
-              ));
+                            setState(() {});
+                          },
+                          child: Container(
+                              width: SizeConfig.screenWidth,
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 15,
+                                  horizontal: SizeConfig.defaultMargin),
+                              child: CustomLabelFlagAndCountry(e)),
+                        ))
+                    .toList(),
+              )));
         });
   }
 

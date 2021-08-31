@@ -31,8 +31,8 @@ class CustomButton extends StatelessWidget {
     return Container(
       width: (width == null) ? SizeConfig.screenWidth : width,
       decoration: BoxDecoration(
-        // gradient: linearGradient,
-        color: backgroundColor ?? blue,
+        gradient: linearGradient ?? null,
+        color: backgroundColor ?? null,
         borderRadius: BorderRadius.circular(
                     (borderRadius == null) ? 10 : borderRadius!),
       ),
