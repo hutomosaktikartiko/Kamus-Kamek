@@ -115,112 +115,116 @@ class _HomeScreenState extends State<HomeScreen> {
 
   SafeArea buildBody() {
     return SafeArea(
-      child: ListView(
-        children: [
-          SizedBox(height: 10),
-          Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: SizeConfig.defaultMargin,
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: ListView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          children: [
+            SizedBox(height: 10),
+            Padding(
+              padding: EdgeInsets.symmetric(
+                horizontal: SizeConfig.defaultMargin,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      TextButton(
+                        style: TextButton.styleFrom(
+                            padding: EdgeInsets.symmetric(horizontal: 5)),
+                        onPressed: () {
+                          buildBottomSheet(isCountry1: true);
+                        },
+                        child: buildSelectedCountryCard(country1),
+                      ),
+                      GestureDetector(
+                        onTap: () async {
+                          CountryModel swicthCountry = country1;
+                          String lastValue = textEditingController2.text;
+                          setState(() {
+                            country1 = country2;
+                            country2 = swicthCountry;
+                            textEditingController2 = TextEditingController(
+                                text: textEditingController1.text);
+                            textEditingController1 =
+                                TextEditingController(text: lastValue);
+                          });
+                        },
+                        child: Icon(Icons.swap_horiz),
+                      ),
+                      TextButton(
+                        style: TextButton.styleFrom(
+                            padding: EdgeInsets.symmetric(horizontal: 5)),
+                        onPressed: () {
+                          buildBottomSheet(isCountry1: false);
+                        },
+                        child: buildSelectedCountryCard(country2),
+                      ),
+                    ],
+                  ),
+                  GestureDetector(
+                      onTap: () => startScreen(context, SettingScreen()),
+                      child: Icon(Icons.settings))
+                ],
+              ),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Row(
-                  children: [
-                    TextButton(
-                      style: TextButton.styleFrom(
-                          padding: EdgeInsets.symmetric(horizontal: 5)),
-                      onPressed: () {
-                        buildBottomSheet(isCountry1: true);
-                      },
-                      child: buildSelectedCountryCard(country1),
-                    ),
-                    GestureDetector(
-                      onTap: () async {
-                        CountryModel swicthCountry = country1;
-                        String lastValue = textEditingController2.text;
-                        setState(() {
-                          country1 = country2;
-                          country2 = swicthCountry;
-                          textEditingController2 = TextEditingController(
-                              text: textEditingController1.text);
-                          textEditingController1 =
-                              TextEditingController(text: lastValue);
-                        });
-                      },
-                      child: Icon(Icons.swap_horiz),
-                    ),
-                    TextButton(
-                      style: TextButton.styleFrom(
-                          padding: EdgeInsets.symmetric(horizontal: 5)),
-                      onPressed: () {
-                        buildBottomSheet(isCountry1: false);
-                      },
-                      child: buildSelectedCountryCard(country2),
-                    ),
-                  ],
-                ),
-                GestureDetector(
-                    onTap: () => startScreen(context, SettingScreen()),
-                    child: Icon(Icons.settings))
-              ],
+            SizedBox(
+              height: 13,
             ),
-          ),
-          SizedBox(
-            height: 13,
-          ),
-          Container(
-            height: SizeConfig.screenHeight * 0.859,
-            padding: EdgeInsets.symmetric(horizontal: SizeConfig.defaultMargin),
-            decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(topLeft: Radius.circular(40))),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  height: 18,
-                ),
-                CustomForm(
-                  textEditingController1,
-                  maxLines: 10,
-                  hintText: country1.hintText,
-                  labelText: country1.country,
-                  onTapLabel: () => buildBottomSheet(isCountry1: true),
-                  onChanged: () async {
-                    String? result = await translateText(
-                        text: textEditingController1.text,
-                        source: country1.code,
-                        target: country2.code!);
-                    setState(() {
-                      textEditingController2 =
-                          TextEditingController(text: result);
-                    });
-                  },
-                ),
-                SizedBox(
-                  height: 90,
-                ),
-                Divider(),
-                SizedBox(
-                  height: 18,
-                ),
-                CustomForm(
-                  textEditingController2,
-                  readOnly: true,
-                  hintText: country2.hintText,
-                  onTapLabel: () => buildBottomSheet(isCountry1: false),
-                  labelStyle: greyFontStyle.copyWith(
-                      fontSize: 14, fontWeight: FontWeight.w500),
-                  labelText: country2.country,
-                  maxLines: 10,
-                  hintStyle: greyFontStyle.copyWith(
-                      fontSize: 30, fontWeight: FontWeight.w600),
-                )
-              ],
-            ),
-          )
-        ],
+            Container(
+              height: SizeConfig.screenHeight * 0.859,
+              padding: EdgeInsets.symmetric(horizontal: SizeConfig.defaultMargin),
+              decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(topLeft: Radius.circular(40))),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  SizedBox(
+                    height: 18,
+                  ),
+                  CustomForm(
+                    textEditingController1,
+                    maxLines: 10,
+                    hintText: country1.hintText,
+                    labelText: country1.country,
+                    onTapLabel: () => buildBottomSheet(isCountry1: true),
+                    onChanged: () async {
+                      String? result = await translateText(
+                          text: textEditingController1.text,
+                          source: country1.code,
+                          target: country2.code!);
+                      setState(() {
+                        textEditingController2 =
+                            TextEditingController(text: result);
+                      });
+                    },
+                  ),
+                  SizedBox(
+                    height: 90,
+                  ),
+                  Divider(),
+                  SizedBox(
+                    height: 18,
+                  ),
+                  CustomForm(
+                    textEditingController2,
+                    readOnly: true,
+                    hintText: country2.hintText,
+                    onTapLabel: () => buildBottomSheet(isCountry1: false),
+                    labelStyle: greyFontStyle.copyWith(
+                        fontSize: 14, fontWeight: FontWeight.w500),
+                    labelText: country2.country,
+                    maxLines: 10,
+                    hintStyle: greyFontStyle.copyWith(
+                        fontSize: 30, fontWeight: FontWeight.w600),
+                  )
+                ],
+              ),
+            )
+          ],
+        ),
       ),
     );
   }

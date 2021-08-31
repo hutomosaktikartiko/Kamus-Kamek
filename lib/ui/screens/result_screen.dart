@@ -150,60 +150,63 @@ class _ResultScreenState extends State<ResultScreen> {
         backgroundColor: Colors.white,
         body: (isLoading)
             ? Center(child: loadingIndicator())
-            : SingleChildScrollView(
-                padding:
-                    EdgeInsets.symmetric(horizontal: SizeConfig.defaultMargin),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      height: 40,
-                    ),
-                    GestureDetector(
-                        onTap: () {
-                          releaseResources();
-                          closeScreen(context);
+            : GestureDetector(
+                onTap: () => FocusScope.of(context).unfocus(),
+                child: SingleChildScrollView(
+                  padding: EdgeInsets.symmetric(
+                      horizontal: SizeConfig.defaultMargin),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SizedBox(
+                        height: 40,
+                      ),
+                      GestureDetector(
+                          onTap: () {
+                            releaseResources();
+                            closeScreen(context);
+                          },
+                          child: Icon(
+                            Icons.close,
+                          )),
+                      SizedBox(
+                        height: 20,
+                      ),
+                      CustomForm(
+                        textEditingController1,
+                        maxLines: 10,
+                        onTapLabel: () => buildListSelectCountryItem(true),
+                        labelText: country1.country,
+                        onChanged: () async {
+                          String? result = await translateText(
+                              text: textEditingController1.text,
+                              source: country1.code,
+                              target: country2.code!);
+                          setState(() {
+                            textEditingController2 =
+                                TextEditingController(text: result);
+                          });
                         },
-                        child: Icon(
-                          Icons.close,
-                        )),
-                    SizedBox(
-                      height: 20,
-                    ),
-                    CustomForm(
-                      textEditingController1,
-                      maxLines: 10,
-                      onTapLabel: () => buildListSelectCountryItem(true),
-                      labelText: country1.country,
-                      onChanged: () async {
-                        String? result = await translateText(
-                            text: textEditingController1.text,
-                            source: country1.code,
-                            target: country2.code!);
-                        setState(() {
-                          textEditingController2 =
-                              TextEditingController(text: result);
-                        });
-                      },
-                    ),
-                    SizedBox(
-                      height: 50,
-                    ),
-                    CustomForm(
-                      textEditingController2,
-                      readOnly: true,
-                      labelStyle: greyFontStyle.copyWith(
-                          fontSize: 14, fontWeight: FontWeight.w500),
-                      labelText: country2.country,
-                      maxLines: 10,
-                      onTapLabel: () => buildListSelectCountryItem(false),
-                      hintStyle: greyFontStyle.copyWith(
-                          fontSize: 30, fontWeight: FontWeight.w600),
-                    ),
-                    SizedBox(
-                      height: 40,
-                    )
-                  ],
+                      ),
+                      SizedBox(
+                        height: 50,
+                      ),
+                      CustomForm(
+                        textEditingController2,
+                        readOnly: true,
+                        labelStyle: greyFontStyle.copyWith(
+                            fontSize: 14, fontWeight: FontWeight.w500),
+                        labelText: country2.country,
+                        maxLines: 10,
+                        onTapLabel: () => buildListSelectCountryItem(false),
+                        hintStyle: greyFontStyle.copyWith(
+                            fontSize: 30, fontWeight: FontWeight.w600),
+                      ),
+                      SizedBox(
+                        height: 40,
+                      )
+                    ],
+                  ),
                 ),
               ),
       ),
