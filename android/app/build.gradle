@@ -61,7 +61,7 @@ android {
         release {
             signingConfig signingConfigs.release
             aaptOptions {
-                ignoreAssetsPattern "!mlkit_pose:"
+                ignoreAssetsPattern '!mlkit_pose:!mlkit_label_default_model:!hobbes.tflite:'
             }
         }
     }
