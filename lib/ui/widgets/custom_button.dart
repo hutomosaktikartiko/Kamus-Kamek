@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:kamus_kamek/config/custom_color.dart';
 import 'package:kamus_kamek/config/text_style.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
 
@@ -30,7 +31,8 @@ class CustomButton extends StatelessWidget {
     return Container(
       width: (width == null) ? SizeConfig.screenWidth : width,
       decoration: BoxDecoration(
-        gradient: linearGradient,
+        // gradient: linearGradient,
+        color: backgroundColor ?? blue,
         borderRadius: BorderRadius.circular(
                     (borderRadius == null) ? 10 : borderRadius!),
       ),

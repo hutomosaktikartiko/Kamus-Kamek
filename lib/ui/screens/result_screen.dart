@@ -115,9 +115,6 @@ class _ResultScreenState extends State<ResultScreen> {
 
   Future<String?> translateText(
       {required String text, required String target, String? source}) async {
-    print("{ TEXT WILL TRANSLATE $text}");
-    print("{ COUNTRY1 ${country1.code}}");
-    print("{ COUNTRY2 ${country2.code}}");
     ApiReturnValue<TranslationModel> result =
         await TranslationServices.translateText(
             apiKey: (context.read<APIKeyCubit>().state as APIKeyLoaded)

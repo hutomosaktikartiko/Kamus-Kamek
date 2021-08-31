@@ -74,7 +74,7 @@ android {
         exclude 'lib/**/libclassifier_jni.so'
         exclude 'lib/**/libface_detector_v2_jni.so'
         exclude 'lib/**/libtensorflowlite_jni.so'
-        // exclude 'lib/**/liblanguage_id_jni.so' → required for language detection
+        exclude 'lib/**/liblanguage_id_jni.so'
     }
 }
 

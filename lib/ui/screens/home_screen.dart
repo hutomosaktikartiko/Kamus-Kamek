@@ -11,6 +11,7 @@ import 'package:kamus_kamek/models/translation_model.dart';
 import 'package:kamus_kamek/services/image_services.dart';
 import 'package:kamus_kamek/ui/screens/result_screen.dart';
 import 'package:kamus_kamek/ui/screens/setting_screen.dart';
+import 'package:kamus_kamek/ui/widgets/custom_connection_error.dart';
 import 'package:kamus_kamek/ui/widgets/custom_form.dart';
 import 'package:kamus_kamek/ui/widgets/custom_label_flag_and_country.dart';
 import 'package:kamus_kamek/ui/widgets/custom_toast.dart';
@@ -37,6 +38,7 @@ class _HomeScreenState extends State<HomeScreen> {
   TextEditingController textEditingController2 = TextEditingController();
 
   bool isLoading = true;
+  bool isError = false;
 
   @override
   void initState() {
@@ -55,17 +57,13 @@ class _HomeScreenState extends State<HomeScreen> {
           (element) => element.country == "Indonesian",
           orElse: () => listCountries[1]);
     } else {
-      // TODO: Condition if failed get data
+      isError = true;
     }
+    setState(() {});
   }
-
-  // TODO: Fitur Refresh (country dan country2 di lakukan init ulang dengan data yang lama, jika tidak ada maka dengan databaru yang kemudian langsung ditranslate)
 
   Future<String?> translateText(
       {required String text, required String target, String? source}) async {
-    print("{ TEXT WILL TRANSLATE $text}");
-    print("{ COUNTRY1 ${country1.code}}");
-    print("{ COUNTRY2 ${country2.code}}");
     ApiReturnValue<TranslationModel> result =
         await TranslationServices.translateText(
             apiKey: (context.read<APIKeyCubit>().state as APIKeyLoaded)
@@ -89,11 +87,27 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Color(0xFFE5E5E5),
       key: _scaffold,
-      body: buildBody(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => showImageActionSheet(),
-        child: Icon(Icons.camera),
-      ),
+      body: RefreshIndicator(
+          onRefresh: () async {
+            await context.read<CountryCubit>().getCountries();
+            textEditingController1 = TextEditingController();
+            textEditingController2 = TextEditingController();
+            setInitValue();
+          },
+          child: (isError)
+              ? CustomConnectionError(
+                  message: "Terjadi Kesalahan Jaringan",
+                  onTap: () async {
+                    await context.read<CountryCubit>().getCountries();
+                    setInitValue();
+                  },
+                )
+              : buildBody()),
+      floatingActionButton: (isError)
+          ? null : FloatingActionButton(
+              onPressed: () => showImageActionSheet(),
+              child: Icon(Icons.camera),
+            ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       resizeToAvoidBottomInset: false,
     );

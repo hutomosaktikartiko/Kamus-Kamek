@@ -4,6 +4,7 @@ const Color purple = Color(0xFF4545A9);
 const Color mainColor = Color(0xFF4766FD);
 const Color mainColor2 = Color(0xFF2D4DFE);
 const Color grey = Color(0xFFBEBEBE);
+const Color blue = Color(0xFF459FF2);
 
 // begin -> mainColor, end -> mainColor2
 LinearGradient linearGradient(
