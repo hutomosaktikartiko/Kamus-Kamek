@@ -84,6 +84,17 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  void hideKeyboard() {
+    FocusScope.of(context).unfocus();
+  }
+
+  @override
+  void dispose() {
+    textEditingController1.dispose();
+    textEditingController2.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -120,8 +131,9 @@ class _HomeScreenState extends State<HomeScreen> {
   SafeArea buildBody() {
     return SafeArea(
       child: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
+        onTap: () => hideKeyboard(),
         child: ListView(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           children: [
             SizedBox(height: 10),
             Padding(
@@ -143,6 +155,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       GestureDetector(
                         onTap: () async {
+                          hideKeyboard();
                           CountryModel swicthCountry = country1;
                           String lastValue = textEditingController2.text;
                           setState(() {
@@ -167,7 +180,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     ],
                   ),
                   GestureDetector(
-                      onTap: () => startScreen(context, SettingScreen()),
+                      onTap: () {
+                        hideKeyboard();
+                        startScreen(context, SettingScreen());
+                      },
                       child: Icon(Icons.settings))
                 ],
               ),
@@ -183,8 +199,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: Colors.white,
                   borderRadius:
                       BorderRadius.only(topLeft: Radius.circular(40))),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: ListView(
+                keyboardDismissBehavior:
+                    ScrollViewKeyboardDismissBehavior.onDrag,
                 children: [
                   SizedBox(
                     height: 18,
@@ -235,55 +252,45 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void buildBottomSheet({required bool isCountry1}) {
-    showModalBottomSheet(
-        context: context,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(10))),
-        isScrollControlled: true,
-        builder: (context) {
-          return Container(
-              constraints: BoxConstraints(
-                maxHeight: SizeConfig.screenHeight * 0.9,
-                minHeight: SizeConfig.screenHeight * 0.5,
-              ),
-              child: SingleChildScrollView(
-                  child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: listCountries
-                    .map((e) => InkWell(
-                          onTap: () async {
-                            closeScreen(context);
-                            if (isCountry1) {
-                              String? result = await translateText(
-                                  text: textEditingController1.text,
-                                  target: e.code!);
-                              textEditingController1 =
-                                  TextEditingController(text: result);
+    hideKeyboard();
+    CustomDialog.showBottomSheet(
+      context: context,
+      listCountries: listCountries
+          .map((e) => InkWell(
+                onTap: () async {
+                  if (e.code != country1.code && e.code != country2.code) {
+                    closeScreen(context);
+                    if (isCountry1) {
+                      String? result = await translateText(
+                          text: textEditingController1.text, target: e.code!);
+                      textEditingController1 =
+                          TextEditingController(text: result);
 
-                              country1 = e;
-                            } else {
-                              country2 = e;
-                            }
-                            String? result = await translateText(
-                                text: textEditingController1.text,
-                                source: country1.code,
-                                target: country2.code!);
-                            textEditingController2 =
-                                TextEditingController(text: result);
+                      country1 = e;
+                    } else {
+                      country2 = e;
+                    }
+                    String? result = await translateText(
+                        text: textEditingController1.text,
+                        source: country1.code,
+                        target: country2.code!);
+                    textEditingController2 =
+                        TextEditingController(text: result);
 
-                            setState(() {});
-                          },
-                          child: Container(
-                              width: SizeConfig.screenWidth,
-                              padding: EdgeInsets.symmetric(
-                                  vertical: 15,
-                                  horizontal: SizeConfig.defaultMargin),
-                              child: CustomLabelFlagAndCountry(e)),
-                        ))
-                    .toList(),
-              )));
-        });
+                    setState(() {});
+                  } else {
+                    CustomDialog.showToast(
+                        "Tidak bisa memilih negara yang sama.");
+                  }
+                },
+                child: Container(
+                    width: SizeConfig.screenWidth,
+                    padding: EdgeInsets.symmetric(
+                        vertical: 15, horizontal: SizeConfig.defaultMargin),
+                    child: CustomLabelFlagAndCountry(e)),
+              ))
+          .toList(),
+    );
   }
 
   SizedBox buildSelectedCountryCard(CountryModel country) {
@@ -294,6 +301,7 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void showImageActionSheet() {
+    hideKeyboard();
     showModalBottomSheet(
         context: _scaffold.currentContext!,
         builder: (context) => Wrap(
