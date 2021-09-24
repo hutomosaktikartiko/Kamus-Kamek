@@ -12,9 +12,9 @@ import 'package:kamus_kamek/services/image_services.dart';
 import 'package:kamus_kamek/ui/screens/result_screen.dart';
 import 'package:kamus_kamek/ui/screens/setting_screen.dart';
 import 'package:kamus_kamek/ui/widgets/custom_connection_error.dart';
+import 'package:kamus_kamek/ui/widgets/custom_dialog.dart';
 import 'package:kamus_kamek/ui/widgets/custom_form.dart';
 import 'package:kamus_kamek/ui/widgets/custom_label_flag_and_country.dart';
-import 'package:kamus_kamek/ui/widgets/custom_toast.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
 import 'package:kamus_kamek/services/translation_services.dart';
@@ -79,7 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (result.value != null) {
       return result.value?.translatedText;
     } else {
-      customToast(result.message!);
+      CustomDialog.showToast(result.message!);
       return "";
     }
   }
@@ -312,7 +312,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
                     } catch (e) {
                       print("ERROR $e");
-                      customToast(e.toString());
+                      CustomDialog.showToast(e.toString());
                     }
                   },
                 ),
@@ -330,7 +330,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       }
                     } catch (e) {
                       print("ERROR $e");
-                      customToast(e.toString());
+                      CustomDialog.showToast(e.toString());
                     }
                   },
                 ),

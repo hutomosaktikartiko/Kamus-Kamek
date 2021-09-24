@@ -9,9 +9,9 @@ import 'package:kamus_kamek/models/api_return_value.dart';
 import 'package:kamus_kamek/models/country_model.dart';
 import 'package:kamus_kamek/models/translation_model.dart';
 import 'package:kamus_kamek/services/translation_services.dart';
+import 'package:kamus_kamek/ui/widgets/custom_dialog.dart';
 import 'package:kamus_kamek/ui/widgets/custom_form.dart';
 import 'package:kamus_kamek/ui/widgets/custom_label_flag_and_country.dart';
-import 'package:kamus_kamek/ui/widgets/custom_toast.dart';
 import 'package:kamus_kamek/ui/widgets/loading_indicator.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
@@ -44,8 +44,6 @@ class _ResultScreenState extends State<ResultScreen> {
   }
 
   final TextDetector textDetector = GoogleMlKit.vision.textDetector();
-  final LanguageIdentifier languageIdentifier =
-      GoogleMlKit.nlp.languageIdentifier();
 
   void initData() async {
     String resultRecognised = await recognisedText();
@@ -53,7 +51,7 @@ class _ResultScreenState extends State<ResultScreen> {
     if (resultRecognised == "") {
       releaseResources();
       closeScreen(context);
-      customToast("Tidak dapat membaca teks");
+      CustomDialog.showToast("Tidak dapat membaca teks");
     }
 
     if ((context.read<CountryCubit>().state is CountryLoaded) &&
@@ -70,11 +68,11 @@ class _ResultScreenState extends State<ResultScreen> {
       if (result.value == null) {
         releaseResources();
         closeScreen(context);
-        customToast("Tidak dapat membaca teks");
+        CustomDialog.showToast("Tidak dapat membaca teks");
       }
 
       country1 = listCountries.firstWhere(
-          (element) => element.country == result.value!.dectectedSourceLanguage,
+          (element) => element.code == result.value!.dectectedSourceLanguage,
           orElse: () => listCountries[0]);
 
       textEditingController1 = TextEditingController(text: resultRecognised);
@@ -119,15 +117,25 @@ class _ResultScreenState extends State<ResultScreen> {
             source: source);
 
     if (result.value == null) {
-      customToast(result.message!);
+      CustomDialog.showToast(result.message!);
     }
 
     return result;
   }
 
+  void hideKeyboard() {
+    FocusScope.of(context).requestFocus(FocusNode());
+  }
+
   void releaseResources() {
-    languageIdentifier.close();
     textDetector.close();
+  }
+
+  @override
+  void dispose() {
+    textEditingController1.dispose();
+    textEditingController2.dispose();
+    super.dispose();
   }
 
   @override
@@ -143,17 +151,18 @@ class _ResultScreenState extends State<ResultScreen> {
         body: (isLoading)
             ? Center(child: loadingIndicator())
             : GestureDetector(
-                onTap: () => FocusScope.of(context).unfocus(),
-                child: SingleChildScrollView(
+                onTap: () => hideKeyboard(),
+                child: ListView(
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                   padding: EdgeInsets.symmetric(
                       horizontal: SizeConfig.defaultMargin),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      SizedBox(
-                        height: 40,
-                      ),
-                      GestureDetector(
+                  children: [
+                    SizedBox(
+                      height: 40,
+                    ),
+                    Align(
+                      alignment: Alignment.topLeft,
+                      child: GestureDetector(
                           onTap: () {
                             releaseResources();
                             closeScreen(context);
@@ -161,103 +170,82 @@ class _ResultScreenState extends State<ResultScreen> {
                           child: Icon(
                             Icons.close,
                           )),
-                      SizedBox(
-                        height: 20,
-                      ),
-                      CustomForm(
-                        textEditingController1,
-                        maxLines: 10,
-                        onTapLabel: () => buildListSelectCountryItem(true),
-                        labelText: country1.country,
-                        onChanged: () async {
-                          ApiReturnValue<TranslationModel>? result =
-                              await translateText(
-                                  text: textEditingController1.text,
-                                  source: country1.code,
-                                  target: country2.code!);
-                          setState(() {
-                            textEditingController2 = TextEditingController(
-                                text: result.value?.translatedText);
-                          });
-                        },
-                      ),
-                      SizedBox(
-                        height: 50,
-                      ),
-                      CustomForm(
-                        textEditingController2,
-                        readOnly: true,
-                        labelStyle: greyFontStyle.copyWith(
-                            fontSize: 14, fontWeight: FontWeight.w500),
-                        labelText: country2.country,
-                        maxLines: 10,
-                        onTapLabel: () => buildListSelectCountryItem(false),
-                        hintStyle: greyFontStyle.copyWith(
-                            fontSize: 30, fontWeight: FontWeight.w600),
-                      ),
-                      SizedBox(
-                        height: 40,
-                      )
-                    ],
-                  ),
+                    ),
+                    SizedBox(
+                      height: 20,
+                    ),
+                    CustomForm(
+                      textEditingController1,
+                      maxLines: 10,
+                      labelText: country1.country,
+                      onChanged: () async {
+                        ApiReturnValue<TranslationModel>? result =
+                            await translateText(
+                                text: textEditingController1.text,
+                                source: country1.code,
+                                target: country2.code!);
+                        setState(() {
+                          textEditingController2 = TextEditingController(
+                              text: result.value?.translatedText);
+                        });
+                      },
+                    ),
+                    SizedBox(
+                      height: 50,
+                    ),
+                    CustomForm(
+                      textEditingController2,
+                      readOnly: true,
+                      labelStyle: greyFontStyle.copyWith(
+                          fontSize: 14, fontWeight: FontWeight.w500),
+                      labelText: country2.country,
+                      maxLines: 10,
+                      onTapLabel: () => buildListSelectCountryItem(),
+                      hintStyle: greyFontStyle.copyWith(
+                          fontSize: 30, fontWeight: FontWeight.w600),
+                    ),
+                    SizedBox(
+                      height: 40,
+                    )
+                  ],
                 ),
               ),
       ),
     );
   }
 
-  void buildListSelectCountryItem(bool isCountry1) {
-    showModalBottomSheet(
-        context: context,
-        shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(top: Radius.circular(10))),
-        isScrollControlled: true,
-        builder: (context) {
-          return Container(
-              constraints: BoxConstraints(
-                maxHeight: SizeConfig.screenHeight * 0.9,
-                minHeight: SizeConfig.screenHeight * 0.5,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: listCountries
-                      .map((e) => InkWell(
-                            onTap: () async {
-                              closeScreen(context);
-                              if (isCountry1) {
-                                ApiReturnValue<TranslationModel>? result =
-                                    await translateText(
-                                        text: textEditingController1.text,
-                                        target: e.code!);
-                                textEditingController1 = TextEditingController(
-                                    text: result.value?.translatedText);
+  void buildListSelectCountryItem() {
+    hideKeyboard();
+    CustomDialog.showBottomSheet(
+      context: context,
+      listCountries: listCountries
+          .map((e) => InkWell(
+                onTap: () async {
+                  if (e.code != country1.code && e.code != country2.code) {
+                    closeScreen(context);
+                    country2 = e;
 
-                                country1 = e;
-                              } else {
-                                country2 = e;
-                              }
-                              ApiReturnValue<TranslationModel>? result =
-                                  await translateText(
-                                      text: textEditingController1.text,
-                                      source: country1.code,
-                                      target: country2.code!);
-                              textEditingController2 = TextEditingController(
-                                  text: result.value?.translatedText);
+                    ApiReturnValue<TranslationModel>? result =
+                        await translateText(
+                            text: textEditingController1.text,
+                            source: country1.code,
+                            target: country2.code!);
+                    textEditingController2 = TextEditingController(
+                        text: result.value?.translatedText);
 
-                              setState(() {});
-                            },
-                            child: Container(
-                                width: SizeConfig.screenWidth,
-                                padding: EdgeInsets.symmetric(
-                                    vertical: 15,
-                                    horizontal: SizeConfig.defaultMargin),
-                                child: CustomLabelFlagAndCountry(e)),
-                          ))
-                      .toList(),
-                ),
-              ));
-        });
+                    setState(() {});
+                  } else {
+                    CustomDialog.showToast(
+                        "Tidak bisa memilih negara yang sama.");
+                  }
+                },
+                child: Container(
+                    width: SizeConfig.screenWidth,
+                    padding: EdgeInsets.symmetric(
+                        vertical: 15, horizontal: SizeConfig.defaultMargin),
+                    child: CustomLabelFlagAndCountry(e)),
+              ))
+          .toList(),
+    );
   }
 }

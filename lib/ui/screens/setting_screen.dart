@@ -38,10 +38,7 @@ class _SettingScreenState extends State<SettingScreen> {
                   });
                 })),
         buildListCard(
-          label: "Update App",
-        ),
-        buildListCard(
-          label: "Rate this App",
+          label: "Default language",
         ),
         buildListCard(
           label: "About Us",
