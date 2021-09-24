@@ -37,6 +37,13 @@
             {
               "client_id": "233915473257-id58jihiqqqc6533dnda46r8cm954nnj.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "233915473257-95gj5ecipefr542fhund3j9vckf3ik3m.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "safdasd.sad.as.a.a"
+              }
             }
           ]
         }
@@ -74,6 +81,13 @@
             {
               "client_id": "233915473257-id58jihiqqqc6533dnda46r8cm954nnj.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "233915473257-95gj5ecipefr542fhund3j9vckf3ik3m.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "safdasd.sad.as.a.a"
+              }
             }
           ]
         }
