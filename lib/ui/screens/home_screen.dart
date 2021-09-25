@@ -16,6 +16,7 @@ import 'package:kamus_kamek/ui/widgets/custom_dialog.dart';
 import 'package:kamus_kamek/ui/widgets/custom_form.dart';
 import 'package:kamus_kamek/ui/widgets/custom_label_flag_and_country.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
+import 'package:kamus_kamek/utils/preferences.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
 import 'package:kamus_kamek/services/translation_services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -47,16 +48,17 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
   }
 
-  void setInitValue() {
+  void setInitValue() async {
     if ((context.read<CountryCubit>().state is CountryLoaded) &&
         (context.read<APIKeyCubit>().state is APIKeyLoaded)) {
+          String codeCountry = await Preferences.instance().then((value) => value.defaultLanguage);
       listCountries =
           (context.read<CountryCubit>().state as CountryLoaded).listCountries;
       country1 = listCountries.firstWhere(
           (element) => element.country == "English (US)",
           orElse: () => listCountries[0]);
       country2 = listCountries.firstWhere(
-          (element) => element.country == "Indonesian",
+          (element) => element.code == codeCountry,
           orElse: () => listCountries[1]);
     } else {
       isError = true;

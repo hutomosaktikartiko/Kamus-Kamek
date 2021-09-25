@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:kamus_kamek/config/custom_color.dart';
 import 'package:kamus_kamek/config/text_style.dart';
+import 'package:kamus_kamek/cubit/cubits.dart';
+import 'package:kamus_kamek/ui/widgets/custom_dialog.dart';
+import 'package:kamus_kamek/ui/widgets/custom_label_flag_and_country.dart';
+import 'package:kamus_kamek/ui/widgets/loading_indicator.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
+import 'package:kamus_kamek/utils/preferences.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:kamus_kamek/utils/utils.dart';
 
 class SettingScreen extends StatefulWidget {
   const SettingScreen({Key? key}) : super(key: key);
@@ -13,13 +20,30 @@ class SettingScreen extends StatefulWidget {
 
 class _SettingScreenState extends State<SettingScreen> {
   bool isDarkTheme = false;
+  bool isLoading = true;
+
+  String codeCountry = "";
+
+  @override
+  void initState() {
+    initData();
+    super.initState();
+  }
+
+  void initData() async {
+    await Preferences.instance()
+        .then((value) => codeCountry = value.defaultLanguage);
+    setState(() {
+      isLoading = false;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: buildAppBar(context),
       backgroundColor: Colors.white,
-      body: buildBody(),
+      body: (isLoading) ? loadingIndicator() : buildBody(),
     );
   }
 
@@ -38,8 +62,17 @@ class _SettingScreenState extends State<SettingScreen> {
                   });
                 })),
         buildListCard(
-          label: "Default language",
-        ),
+            label: "Default language",
+            rightWidget: FadeInImage(
+              placeholder: AssetImage("assets/images/placeholder.jpg"),
+              height: 19,
+              width: 27,
+              fit: BoxFit.cover,
+              image: NetworkImage(baseUrlFlag(codeCountry)),
+            ),
+            onTap: () {
+              buildListSelectCountryItem();
+            }),
         buildListCard(
           label: "About Us",
         ),
@@ -68,9 +101,16 @@ class _SettingScreenState extends State<SettingScreen> {
   }
 
   InkWell buildListCard(
-      {required String label, Widget? rightWidget, double? paddingVertical}) {
+      {required String label,
+      Widget? rightWidget,
+      double? paddingVertical,
+      Function? onTap}) {
     return InkWell(
-      onTap: () {},
+      onTap: () {
+        if (onTap != null) {
+          onTap();
+        }
+      },
       child: Padding(
         padding: EdgeInsets.symmetric(
             horizontal: SizeConfig.defaultMargin,
@@ -92,6 +132,37 @@ class _SettingScreenState extends State<SettingScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void buildListSelectCountryItem() {
+    CustomDialog.showBottomSheet(
+      context: context,
+      listCountries: (context.read<CountryCubit>().state as CountryLoaded)
+          .listCountries
+          .map((e) => InkWell(
+                onTap: () async {
+                  await Preferences.instance().then((pref) {
+                    if (e.code != pref.defaultLanguage) {
+                      closeScreen(context);
+                      pref.defaultLanguage = e.code;
+
+                      codeCountry = pref.defaultLanguage;
+
+                      setState(() {});
+                    } else {
+                      CustomDialog.showToast(
+                          "Tidak bisa memilih negara yang sama.");
+                    }
+                  });
+                },
+                child: Container(
+                    width: SizeConfig.screenWidth,
+                    padding: EdgeInsets.symmetric(
+                        vertical: 15, horizontal: SizeConfig.defaultMargin),
+                    child: CustomLabelFlagAndCountry(e)),
+              ))
+          .toList(),
     );
   }
 }
