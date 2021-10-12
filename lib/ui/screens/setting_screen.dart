@@ -51,16 +51,16 @@ class _SettingScreenState extends State<SettingScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        buildListCard(
-            label: "Dark Theme",
-            paddingVertical: 0,
-            rightWidget: Switch(
-                value: isDarkTheme,
-                onChanged: (value) {
-                  setState(() {
-                    isDarkTheme = value;
-                  });
-                })),
+        // buildListCard(
+        //     label: "Dark Theme",
+        //     paddingVertical: 0,
+        //     rightWidget: Switch(
+        //         value: isDarkTheme,
+        //         onChanged: (value) {
+        //           setState(() {
+        //             isDarkTheme = value;
+        //           });
+        //         })),
         buildListCard(
             label: "Default language",
             rightWidget: FadeInImage(
@@ -73,9 +73,9 @@ class _SettingScreenState extends State<SettingScreen> {
             onTap: () {
               buildListSelectCountryItem();
             }),
-        buildListCard(
-          label: "About Us",
-        ),
+        // buildListCard(
+        //   label: "About Us",
+        // ),
       ],
     );
   }
