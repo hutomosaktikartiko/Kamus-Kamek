@@ -63,7 +63,7 @@ class _SettingScreenState extends State<SettingScreen> {
         //         })),
         buildListCard(
             label: "Default language",
-            rightWidget: FadeInImage(
+            rightWidget: (codeCountry == "") ? Text("Select Country") : FadeInImage(
               placeholder: AssetImage("assets/images/placeholder.jpg"),
               height: 19,
               width: 27,

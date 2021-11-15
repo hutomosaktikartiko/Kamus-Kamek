@@ -3,4 +3,4 @@ const String baseUrlGoogleApi =
 const String baseUrlCountry = "https://api.first.org/data/v1/countries";
 
 String baseUrlFlag(String countryCode) =>
-    "https://www.countryflags.io/$countryCode/flat/64.png";
+    "https://flagcdn.com/w20/$countryCode.png";

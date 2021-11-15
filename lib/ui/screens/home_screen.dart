@@ -15,6 +15,7 @@ import 'package:kamus_kamek/ui/widgets/custom_connection_error.dart';
 import 'package:kamus_kamek/ui/widgets/custom_dialog.dart';
 import 'package:kamus_kamek/ui/widgets/custom_form.dart';
 import 'package:kamus_kamek/ui/widgets/custom_label_flag_and_country.dart';
+import 'package:kamus_kamek/ui/widgets/loading_indicator.dart';
 import 'package:kamus_kamek/utils/navigator.dart';
 import 'package:kamus_kamek/utils/preferences.dart';
 import 'package:kamus_kamek/utils/size_config.dart';
@@ -51,7 +52,8 @@ class _HomeScreenState extends State<HomeScreen> {
   void setInitValue() async {
     if ((context.read<CountryCubit>().state is CountryLoaded) &&
         (context.read<APIKeyCubit>().state is APIKeyLoaded)) {
-          String codeCountry = await Preferences.instance().then((value) => value.defaultLanguage);
+      String codeCountry =
+          await Preferences.instance().then((value) => value.defaultLanguage);
       listCountries =
           (context.read<CountryCubit>().state as CountryLoaded).listCountries;
       country1 = listCountries.firstWhere(
@@ -63,7 +65,9 @@ class _HomeScreenState extends State<HomeScreen> {
     } else {
       isError = true;
     }
-    setState(() {});
+    setState(() {
+      isLoading = false;
+    });
   }
 
   Future<String?> translateText(
@@ -102,24 +106,27 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Color(0xFFE5E5E5),
       key: _scaffold,
-      body: RefreshIndicator(
-          onRefresh: () async {
-            await context.read<CountryCubit>().getCountries();
-            textEditingController1 = TextEditingController();
-            textEditingController2 = TextEditingController();
-            setInitValue();
-          },
-          child: (isError)
-              ? CustomConnectionError(
-                  message: "Terjadi Kesalahan Jaringan",
-                  onTap: () async {
-                    await context.read<CountryCubit>().getCountries();
-                    await context.read<APIKeyCubit>().getAPIKeys();
-                    setInitValue();
-                  },
-                )
-              : buildBody()),
-      floatingActionButton: (isError)
+      body: (isLoading)
+          ? Center(child: loadingIndicator())
+          : RefreshIndicator(
+              onRefresh: () async {
+                await context.read<CountryCubit>().getCountries();
+                textEditingController1 = TextEditingController();
+                textEditingController2 = TextEditingController();
+                setInitValue();
+              },
+              child: (isError)
+                  ? CustomConnectionError(
+                      message: "Terjadi Kesalahan Jaringan",
+                      onTap: () async {
+                        await context.read<CountryCubit>().getCountries();
+                        await context.read<APIKeyCubit>().getAPIKeys();
+                        setInitValue();
+                      },
+                    )
+                  : buildBody(),
+            ),
+      floatingActionButton: (isLoading || isError)
           ? null
           : FloatingActionButton(
               onPressed: () => showImageActionSheet(),
@@ -198,9 +205,9 @@ class _HomeScreenState extends State<HomeScreen> {
               padding:
                   EdgeInsets.symmetric(horizontal: SizeConfig.defaultMargin),
               decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius:
-                      BorderRadius.only(topLeft: Radius.circular(40))),
+                color: Colors.white,
+                borderRadius: BorderRadius.only(topLeft: Radius.circular(40)),
+              ),
               child: ListView(
                 keyboardDismissBehavior:
                     ScrollViewKeyboardDismissBehavior.onDrag,
@@ -258,39 +265,41 @@ class _HomeScreenState extends State<HomeScreen> {
     CustomDialog.showBottomSheet(
       context: context,
       listCountries: listCountries
-          .map((e) => InkWell(
-                onTap: () async {
-                  if (e.code != country1.code && e.code != country2.code) {
-                    closeScreen(context);
-                    if (isCountry1) {
-                      String? result = await translateText(
-                          text: textEditingController1.text, target: e.code!);
-                      textEditingController1 =
-                          TextEditingController(text: result);
-
-                      country1 = e;
-                    } else {
-                      country2 = e;
-                    }
+          .map(
+            (e) => InkWell(
+              onTap: () async {
+                if (e.code != country1.code && e.code != country2.code) {
+                  closeScreen(context);
+                  if (isCountry1) {
                     String? result = await translateText(
-                        text: textEditingController1.text,
-                        source: country1.code,
-                        target: country2.code!);
-                    textEditingController2 =
+                        text: textEditingController1.text, target: e.code!);
+                    textEditingController1 =
                         TextEditingController(text: result);
 
-                    setState(() {});
+                    country1 = e;
                   } else {
-                    CustomDialog.showToast(
-                        "Tidak bisa memilih negara yang sama.");
+                    country2 = e;
                   }
-                },
-                child: Container(
-                    width: SizeConfig.screenWidth,
-                    padding: EdgeInsets.symmetric(
-                        vertical: 15, horizontal: SizeConfig.defaultMargin),
-                    child: CustomLabelFlagAndCountry(e)),
-              ))
+                  String? result = await translateText(
+                      text: textEditingController1.text,
+                      source: country1.code,
+                      target: country2.code!);
+                  textEditingController2 = TextEditingController(text: result);
+
+                  setState(() {});
+                } else {
+                  CustomDialog.showToast(
+                      "Tidak bisa memilih negara yang sama.");
+                }
+              },
+              child: Container(
+                width: SizeConfig.screenWidth,
+                padding: EdgeInsets.symmetric(
+                    vertical: 15, horizontal: SizeConfig.defaultMargin),
+                child: CustomLabelFlagAndCountry(e),
+              ),
+            ),
+          )
           .toList(),
     );
   }
@@ -305,46 +314,47 @@ class _HomeScreenState extends State<HomeScreen> {
   void showImageActionSheet() {
     hideKeyboard();
     showModalBottomSheet(
-        context: _scaffold.currentContext!,
-        builder: (context) => Wrap(
-              children: [
-                ListTile(
-                  leading: Icon(Icons.camera_alt),
-                  title: Text("Kamera"),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    try {
-                      var result =
-                          await ImageServices.selectImage(isGallery: false);
-                      if (result != null) {
-                        startScreen(_scaffold.currentContext!,
-                            ResultScreen(File(result.path)));
-                      }
-                    } catch (e) {
-                      print("ERROR $e");
-                      CustomDialog.showToast(e.toString());
-                    }
-                  },
-                ),
-                ListTile(
-                  leading: Icon(Icons.perm_media),
-                  title: Text("Galeri"),
-                  onTap: () async {
-                    Navigator.pop(context);
-                    try {
-                      var result =
-                          await ImageServices.selectImage(isGallery: true);
-                      if (result != null) {
-                        startScreen(_scaffold.currentContext!,
-                            ResultScreen(File(result.path)));
-                      }
-                    } catch (e) {
-                      print("ERROR $e");
-                      CustomDialog.showToast(e.toString());
-                    }
-                  },
-                ),
-              ],
-            ));
+      context: _scaffold.currentContext!,
+      builder: (context) => Wrap(
+        children: [
+          ListTile(
+            leading: Icon(Icons.camera_alt),
+            title: Text("Kamera"),
+            onTap: () async {
+              Navigator.pop(context);
+              try {
+                var result = await ImageServices.selectImage(isGallery: false);
+                if (result != null) {
+                  startScreen(
+                    _scaffold.currentContext!,
+                    ResultScreen(File(result.path)),
+                  );
+                }
+              } catch (e) {
+                print("ERROR $e");
+                CustomDialog.showToast(e.toString());
+              }
+            },
+          ),
+          ListTile(
+            leading: Icon(Icons.perm_media),
+            title: Text("Galeri"),
+            onTap: () async {
+              Navigator.pop(context);
+              try {
+                var result = await ImageServices.selectImage(isGallery: true);
+                if (result != null) {
+                  startScreen(_scaffold.currentContext!,
+                      ResultScreen(File(result.path)));
+                }
+              } catch (e) {
+                print("ERROR $e");
+                CustomDialog.showToast(e.toString());
+              }
+            },
+          ),
+        ],
+      ),
+    );
   }
 }

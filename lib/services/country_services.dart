@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:kamus_kamek/models/api_return_value.dart';
 import 'package:kamus_kamek/models/country_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -10,7 +12,7 @@ class CountryServices {
     try {
       QuerySnapshot snapshots = await countriesReference.get();
 
-      print("{ RESPONSE GET COUNTRIES $snapshots }");
+      log("{ RESPONSE GET COUNTRIES ${snapshots.docs} }");
 
       List<QueryDocumentSnapshot> docs = snapshots.docs;
 

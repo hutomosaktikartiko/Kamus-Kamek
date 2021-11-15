@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:kamus_kamek/models/api_key_model.dart';
 import 'package:kamus_kamek/models/api_return_value.dart';
@@ -10,7 +12,7 @@ class APIKeyServices {
     try {
       QuerySnapshot snapshots = await countriesReference.get();
 
-      print("{ RESPONSE GET APIKEY $snapshots }");
+      log("{ RESPONSE GET APIKEY ${snapshots.docs[0].data()} }");
 
       List<QueryDocumentSnapshot> docs = snapshots.docs;
 
